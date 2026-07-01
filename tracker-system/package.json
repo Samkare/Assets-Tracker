@@ -1,0 +1,31 @@
+{
+  "name": "it-asset-tracker-system",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Task Source IT Asset Tracker — production full-stack system",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "node --watch server/src/index.js",
+    "dev:client": "npm run dev -w @its/client",
+    "build": "npm run build -w @its/client",
+    "migrate": "node server/src/db/migrate.js",
+    "seed": "node server/src/db/seed.js",
+    "pretest": "node -e \"['./data/test.db','./data/test.db-wal','./data/test.db-shm'].forEach(f=>require('fs').rmSync(f,{force:true}))\"",
+    "test": "cross-env NODE_ENV=test DB_PATH=./data/test.db node --test --test-force-exit server/test/",
+    "start": "cross-env NODE_ENV=production node server/src/index.js",
+    "backup": "node server/scripts/backup-db.js"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3"
+  }
+}

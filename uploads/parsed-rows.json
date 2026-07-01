@@ -1,0 +1,2742 @@
+[
+ {
+  "r": 1,
+  "cells": {
+   "A": "Department",
+   "B": "Pseudo Name",
+   "C": "D/L",
+   "D": "Asset Tag",
+   "E": "1st Mo. Serial No.",
+   "F": "2nd Mo. Serial No.",
+   "G": "CPU",
+   "H": "RAM ",
+   "I": "HDD",
+   "J": "MONITOR-1 SN",
+   "K": "MONITOR-2 SN",
+   "L": "HeadPhone",
+   "M": "Speaker",
+   "N": "IP Phone",
+   "O": "WhatsApp No.",
+   "P": "Nextiva No.",
+   "Q": "Web Cam",
+   "R": "Mobile Stand"
+  }
+ },
+ {
+  "r": 2,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "SID",
+   "C": "DESKTOP",
+   "D": "TS-PC-134",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 3,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "JASPER",
+   "C": "DESKTOP",
+   "D": "TS-PC-01",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 4,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "LOUIS",
+   "C": "DESKTOP",
+   "D": "TS-PC-137",
+   "L": "NO",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 5,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "FREDDY",
+   "C": "DESKTOP",
+   "D": "TS-PC-135",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 6,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "JIM",
+   "C": "DESKTOP",
+   "D": "TS-PC-114",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 7,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-110",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 8,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "JUSTIN",
+   "C": "DESKTOP",
+   "D": "TS-PC-139",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 9,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "KENNY",
+   "C": "DESKTOP",
+   "D": "TS-PC-133",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 10,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-129",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 11,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "GLENN",
+   "C": "DESKTOP",
+   "D": "TS-PC-130",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 12,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "JOSEPH",
+   "C": "DESKTOP",
+   "D": "TS-PC-131",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 13,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "MONIKA",
+   "C": "DESKTOP",
+   "D": "TS-PC-132",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 14,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "MATHEW",
+   "C": "DESKTOP",
+   "D": "TS-PC-137",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 15,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "HARVEY",
+   "C": "DESKTOP",
+   "D": "TS-PC-141",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 16,
+  "cells": {
+   "A": "SALES",
+   "B": "BELLA",
+   "C": "DESKTOP",
+   "D": "TS-PC-127",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 17,
+  "cells": {
+   "A": "SALES",
+   "B": "FLORA",
+   "C": "DESKTOP",
+   "D": "TS-PC-123",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 18,
+  "cells": {
+   "A": "SALES",
+   "B": "RANJEET KAKA",
+   "C": "DESKTOP",
+   "D": "TS-PC-125",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 19,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "BILLY",
+   "C": "DESKTOP",
+   "D": "TS-PC-128",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 20,
+  "cells": {
+   "A": "LGD PURCHASE",
+   "B": "AMMY",
+   "C": "DESKTOP",
+   "D": "TS-PC-124",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 21,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "JAMES",
+   "C": "DESKTOP",
+   "D": "TS-PC-39",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 22,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "DENVER",
+   "C": "DESKTOP",
+   "D": "TS-PC-181",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 23,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "DINO",
+   "C": "DESKTOP",
+   "D": "TS-PC-157",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 24,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "PHILIP",
+   "C": "DESKTOP",
+   "D": "TS-PC-154",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 25,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "HERRY",
+   "C": "DESKTOP",
+   "D": "TS-PC-176",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 26,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "MICHEAL",
+   "C": "DESKTOP",
+   "D": "TS-PC-189",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 27,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "ADAM",
+   "C": "DESKTOP",
+   "D": "TS-PC-158",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 28,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "BRUCE",
+   "C": "DESKTOP",
+   "D": "TS-PC-179",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 29,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "ELENA",
+   "C": "DESKTOP",
+   "D": "TS-PC-188",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 30,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "MILLER",
+   "C": "DESKTOP",
+   "D": "TS-PC-183",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 31,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "MORGAN",
+   "C": "DESKTOP",
+   "D": "TS-PC-66",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 32,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "MAX",
+   "C": "DESKTOP",
+   "D": "TS-PC-153",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 33,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "JORDAN",
+   "C": "DESKTOP",
+   "D": "TS-PC-160",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 34,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "SKY",
+   "C": "DESKTOP",
+   "D": "TS-PC-184",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 35,
+  "cells": {
+   "A": "ACCOUNTS",
+   "B": "CHARLOTTE",
+   "C": "DESKTOP",
+   "D": "TS-PC-156",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 36,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "Austin",
+   "C": "DESKTOP",
+   "D": "TS-PC-32",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 37,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "JEREMY",
+   "C": "DESKTOP",
+   "D": "TS-PC-122",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 38,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "EMMA",
+   "C": "DESKTOP",
+   "D": "TS-PC-121",
+   "L": "NO",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 39,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "HANNAH",
+   "C": "DESKTOP",
+   "D": "TS-PC-111",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 40,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "EVELYN",
+   "C": "DESKTOP",
+   "D": "TS-PC-117",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 41,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "LUKE",
+   "C": "DESKTOP",
+   "D": "TS-PC-116",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 42,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "FAITH",
+   "C": "DESKTOP",
+   "D": "TS-PC-118",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 43,
+  "cells": {
+   "A": "SALES OUTBOUND",
+   "B": "HOPE",
+   "C": "DESKTOP",
+   "D": "TS-PC-119",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 44,
+  "cells": {
+   "A": "SALES",
+   "B": "JAYDEN",
+   "C": "DESKTOP",
+   "D": "TS-PC-104",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 45,
+  "cells": {
+   "A": "SALES",
+   "B": "NOA",
+   "C": "DESKTOP",
+   "D": "TS-PC-99",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 46,
+  "cells": {
+   "A": "SALES",
+   "B": "SKYLER",
+   "C": "DESKTOP",
+   "D": "TS-PC-100",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 47,
+  "cells": {
+   "A": "SALES",
+   "B": "ZOE",
+   "C": "DESKTOP",
+   "D": "TS-PC-102",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 48,
+  "cells": {
+   "A": "SALES",
+   "B": "WALTER",
+   "C": "DESKTOP",
+   "D": "TS-PC-98",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 49,
+  "cells": {
+   "A": "SALES",
+   "B": "STEFAN",
+   "C": "DESKTOP",
+   "D": "TS-PC-143",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 50,
+  "cells": {
+   "A": "SALES",
+   "B": "GABRIEL",
+   "C": "DESKTOP",
+   "D": "TS-PC-103",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 51,
+  "cells": {
+   "A": "SALES",
+   "B": "ASHLEY",
+   "C": "DESKTOP",
+   "D": "TS-PC-109",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 52,
+  "cells": {
+   "A": "SALES",
+   "B": "LISA",
+   "C": "DESKTOP",
+   "D": "TS-PC-106",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 53,
+  "cells": {
+   "A": "SALES",
+   "B": "RENEE",
+   "C": "DESKTOP",
+   "D": "TS-PC-108",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 54,
+  "cells": {
+   "A": "SALES",
+   "B": "XAVIER",
+   "C": "DESKTOP",
+   "D": "TS-PC-113",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 55,
+  "cells": {
+   "A": "SALES",
+   "B": "MARSHALL",
+   "C": "DESKTOP",
+   "D": "TS-PC-185",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 56,
+  "cells": {
+   "A": "SALES",
+   "B": "ELSA",
+   "C": "DESKTOP",
+   "D": "TS-PC-115",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 57,
+  "cells": {
+   "A": "SALES",
+   "B": "ROBIN",
+   "C": "DESKTOP",
+   "D": "TS-PC-112",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 58,
+  "cells": {
+   "A": "SALES",
+   "B": "RIVER",
+   "C": "DESKTOP",
+   "D": "TS-PC-101",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 59,
+  "cells": {
+   "A": "SALES",
+   "B": "REBECCA",
+   "C": "DESKTOP",
+   "D": "TS-PC-140",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 60,
+  "cells": {
+   "A": "CREDIT",
+   "B": "ARNOLD",
+   "C": "DESKTOP",
+   "D": "TS-PC-42",
+   "L": "NO",
+   "M": "YES",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 61,
+  "cells": {
+   "A": "CREDIT",
+   "B": "AMANDA",
+   "C": "DESKTOP",
+   "D": "TS-PC-186",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 62,
+  "cells": {
+   "A": "CREDIT",
+   "B": "MAVERICK",
+   "C": "DESKTOP",
+   "D": "TS-PC-44",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 63,
+  "cells": {
+   "A": "CREDIT",
+   "B": "RUSSEL",
+   "C": "DESKTOP",
+   "D": "TS-PC-40",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 64,
+  "cells": {
+   "A": "CREDIT",
+   "B": "FREE",
+   "C": "DESKTOP",
+   "D": "TS-PC-38",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 65,
+  "cells": {
+   "A": "CREDIT",
+   "B": "CLARA",
+   "C": "DESKTOP",
+   "D": "TS-PC-187",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 66,
+  "cells": {
+   "A": "CHEQUES",
+   "B": "ARTHUR",
+   "C": "DESKTOP",
+   "D": "TS-PC-150",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 67,
+  "cells": {
+   "A": "CHEQUES",
+   "B": "AMANDA",
+   "C": "DESKTOP",
+   "D": "TS-PC-34",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 68,
+  "cells": {
+   "A": "CHEQUES",
+   "B": "ASH",
+   "C": "DESKTOP",
+   "D": "TS-PC-27",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 69,
+  "cells": {
+   "A": "CHEQUES",
+   "B": "ALEC",
+   "C": "DESKTOP",
+   "D": "TS-PC-41",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 70,
+  "cells": {
+   "A": "CHEQUES",
+   "B": "ALFRED",
+   "C": "DESKTOP",
+   "D": "TS-PC-159",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 71,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "EDWARD",
+   "C": "DESKTOP",
+   "D": "TS-PC-92",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 72,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "SIMON",
+   "C": "DESKTOP",
+   "D": "TS-PC-93",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 73,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "HAZEL",
+   "C": "DESKTOP",
+   "D": "TS-PC-94",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 74,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "JENNIFIER",
+   "C": "DESKTOP",
+   "D": "TS-PC-96",
+   "L": "NO",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 75,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "SAM",
+   "C": "DESKTOP",
+   "D": "TS-PC-95",
+   "L": "NO",
+   "M": "YES",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 76,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "FINN",
+   "C": "DESKTOP",
+   "D": "TS-PC-177",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 77,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "EVAN",
+   "C": "DESKTOP",
+   "D": "TS-PC-91",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 78,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "NELSON",
+   "C": "DESKTOP",
+   "D": "TS-PC-90",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 79,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "LOGAN",
+   "C": "DESKTOP",
+   "D": "TS-PC-89",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 80,
+  "cells": {
+   "A": "SHIPPING",
+   "B": "THOMAS",
+   "C": "DESKTOP",
+   "D": "TS-PC-88",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 81,
+  "cells": {
+   "A": "SHIPPING",
+   "B": "RICHARD",
+   "C": "DESKTOP",
+   "D": "TS-PC-87",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 82,
+  "cells": {
+   "A": "SALES",
+   "B": "ALDEN",
+   "C": "DESKTOP",
+   "D": "TS-PC-182",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 83,
+  "cells": {
+   "A": "SHIPPING",
+   "B": "MIKE",
+   "C": "DESKTOP",
+   "D": "TS-PC-86",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 84,
+  "cells": {
+   "A": "SHIPPING",
+   "B": "WILLIUM",
+   "C": "DESKTOP",
+   "D": "TS-PC-80",
+   "L": "YES",
+   "M": "YES",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 85,
+  "cells": {
+   "A": "SHIPPING",
+   "B": "JOY",
+   "C": "DESKTOP",
+   "D": "TS-PC-81",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 86,
+  "cells": {
+   "A": "SHIPPING",
+   "B": "BROKE",
+   "C": "DESKTOP",
+   "D": "TS-PC-82",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 87,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "TONY",
+   "C": "DESKTOP",
+   "D": "TS-PC-173",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "O": "NO",
+   "P": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 88,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "WATTSON",
+   "C": "DESKTOP",
+   "D": "TS-PC-84",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 89,
+  "cells": {
+   "A": "PURCHASE",
+   "B": "ANNIE",
+   "C": "DESKTOP",
+   "D": "TS-PC-85",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 90,
+  "cells": {
+   "A": "BUYING",
+   "B": "GAGAN JAT",
+   "C": "DESKTOP",
+   "D": "TS-PC-79",
+   "L": "NO",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 91,
+  "cells": {
+   "A": "BUYING",
+   "B": "ZION",
+   "C": "DESKTOP",
+   "D": "TS-PC-78",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 92,
+  "cells": {
+   "A": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-77",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 93,
+  "cells": {
+   "A": "SURYA",
+   "B": "RIO NEW",
+   "C": "DESKTOP",
+   "D": "TS-PC-76",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 94,
+  "cells": {
+   "A": "SURYA",
+   "B": "MARTINE",
+   "C": "DESKTOP",
+   "D": "TS-PC-75",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 95,
+  "cells": {
+   "A": "SURYA",
+   "B": "ETHAN",
+   "C": "DESKTOP",
+   "D": "TS-PC-74",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 96,
+  "cells": {
+   "A": "SURYA",
+   "B": "DAVIS",
+   "C": "DESKTOP",
+   "D": "TS-PC-68",
+   "L": "NO",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 97,
+  "cells": {
+   "A": "SURYA",
+   "B": "RIO OLD",
+   "C": "DESKTOP",
+   "D": "TS-PC-69",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 98,
+  "cells": {
+   "A": "SURYA",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-71",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 99,
+  "cells": {
+   "A": "SURYA",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-70",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 100,
+  "cells": {
+   "A": "SURYA",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-72",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 101,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ELLA",
+   "C": "DESKTOP",
+   "D": "TS-PC-61",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 102,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-64",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 103,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ROSE",
+   "C": "DESKTOP",
+   "D": "TS-PC-54",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 104,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ERIK",
+   "C": "DESKTOP",
+   "D": "TS-PC-53",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 105,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-200",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 106,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "MARCUS",
+   "C": "DESKTOP",
+   "D": "TS-PC-172",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 107,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ARON",
+   "C": "DESKTOP",
+   "D": "TS-PC-62",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 108,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ASHER",
+   "C": "DESKTOP",
+   "D": "TS-PC-56",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "240 GB",
+   "J": "5ZH4H9TX503946L",
+   "K": "5ZUFH90W600578B",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 109,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "NORA",
+   "C": "DESKTOP",
+   "D": "TS-PC-57",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "240 GB",
+   "J": "5DNEH4TT802039F",
+   "K": "BZUTH4TR401567Y",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 110,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "LILY",
+   "C": "DESKTOP",
+   "D": "TS-PC-138",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "4PWLHTW400286F",
+   "K": "4PWLH4TT402442Y",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 111,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "DAISY",
+   "C": "DESKTOP",
+   "D": "TS-PC-59",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "5ZUFH9DW504474N",
+   "K": "5ZFUH9DW501789X",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 112,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ALVIN",
+   "C": "DESKTOP",
+   "D": "TS-PC-60",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "4PWLH4TT500611M",
+   "K": "5DNEH4TT802048L",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 113,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-61",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "4PWLH4TTA00138Z",
+   "K": "4PWLH4TT500070P",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 114,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "SANDY",
+   "C": "DESKTOP",
+   "D": "TS-PC-73",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "5DNEH4TT803030H",
+   "K": "5DNEH4TT804698M",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 115,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "COOPER",
+   "C": "DESKTOP",
+   "D": "TS-PC-178",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "240 GB",
+   "J": "4PWLH4TRB00559W",
+   "K": "4PWLH4TTA00250B",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 116,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ALBERT",
+   "C": "DESKTOP",
+   "D": "TS-PC-65",
+   "G": "I5 9th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "4PWLH4TTA00180D",
+   "K": "4PWLH4TT500722X",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 117,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "ELVISH",
+   "C": "DESKTOP",
+   "D": "TS-PC-52",
+   "G": "I5 9th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "5DNEH4TT801557X",
+   "K": "4PWLH4TT501140H",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 118,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "NICK",
+   "C": "DESKTOP",
+   "D": "TS-PC-51",
+   "G": "I5 10th GEN",
+   "H": "24 GB",
+   "I": "240 GB",
+   "J": "5ZUFH9DW600568Z",
+   "K": "0DB9HNAT603603P",
+   "L": "YES",
+   "M": "YES",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 119,
+  "cells": {
+   "A": "PAYMENTS",
+   "B": "DARWIN",
+   "C": "DESKTOP",
+   "D": "TS-PC-50",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "4PWLH4TT800023K",
+   "K": "4PWLH4TW400275J",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 120,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "KYLE",
+   "C": "DESKTOP",
+   "D": "TS-PC-29",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "450 GB / 2 TB",
+   "J": "0WPLHNCV604246N",
+   "K": "0WPLHNCY406N38D",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 121,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "CHARLIE",
+   "C": "DESKTOP",
+   "G": "MAC MINI PC",
+   "J": "5ZHXH9TXA00297Z",
+   "K": "7DU3H9DL101116V",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 122,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "MILES",
+   "C": "DESKTOP",
+   "D": "TS-PC-191",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "0WPLHNCY407086X",
+   "K": "BZUTH4TN301043T",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 123,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "JANE",
+   "C": "DESKTOP",
+   "D": "TS-PC-192",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "7DU3H9DYA03067H",
+   "K": "7DU3H9DYA03077W",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 124,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "PETER",
+   "C": "DESKTOP",
+   "D": "TS-PC-24",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZH4H9TX500179J",
+   "K": "5ZH4H9TX504243B",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 125,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "RIHANA",
+   "C": "DESKTOP",
+   "D": "TS-PC-22",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZUFH9JX500558A",
+   "K": "5ZUFH9JX500607N",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 126,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "RAY",
+   "C": "DESKTOP",
+   "D": "TS-PC-19",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHXH9TXA00467T",
+   "K": "5ZHXH9TX806419R",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 127,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "REVIN",
+   "C": "DESKTOP",
+   "D": "TS-PC-190",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "0WTLHNCY407681K",
+   "K": "52UFH9JX300944H",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 128,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "THEO",
+   "C": "DESKTOP",
+   "D": "TS-PC-193",
+   "G": "I7 14th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "7DU3H9DYA03047D",
+   "K": "7DU3H9DL101155K",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 129,
+  "cells": {
+   "A": "MINDHIVES",
+   "B": "COLT",
+   "C": "DESKTOP",
+   "D": "TS-PC-194",
+   "G": "I5 12th GEN",
+   "H": "32 GB",
+   "I": "480 GB & 240 GB",
+   "J": "7DU3H9DL101127K",
+   "K": "7DU3H9DL101167D",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 130,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "RYLEE",
+   "C": "DESKTOP",
+   "D": "TS-PC-17",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHXH9TXA004389",
+   "K": "5ZUFH9JX300744N",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 131,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "SCOTT",
+   "C": "DESKTOP",
+   "D": "TS-PC-16",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHXH9TX804221M",
+   "K": "5ZHXH9TX804172B",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 132,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "STEVE SMITH",
+   "C": "DESKTOP",
+   "D": "TS-PC-9",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHXH9TXA01795Y",
+   "K": "5ZHXH9TX904628P",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 133,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "DARYL",
+   "C": "DESKTOP",
+   "D": "TS-PC-15",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZUFH9JX300793W",
+   "K": "5ZHXH9TX701584H",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 134,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "ALEX",
+   "C": "DESKTOP",
+   "D": "TS-PC-14",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZUFH9JXT00943T",
+   "K": "5ZH4H9TX503908F",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 135,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "EMILY",
+   "C": "DESKTOP",
+   "D": "TS-PC-13",
+   "G": "I5 11th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZUFH9JX300753B",
+   "K": "5ZH4H9TX504318A",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 136,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "ALDEN",
+   "C": "DESKTOP",
+   "D": "TS-PC-02",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZH4H9TX504199Y",
+   "K": "5ZH4H9TX503901A",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 137,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "BLAZE",
+   "C": "DESKTOP",
+   "D": "TS-PC-195",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHXH9TX605008T",
+   "K": "7DU3H9DLI0022R",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 138,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "JOHN",
+   "C": "DESKTOP",
+   "D": "TS-PC-11",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "4PWLH4TT500721L",
+   "K": "4PWLH4TW400273W",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 139,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "OTIS",
+   "C": "DESKTOP",
+   "D": "TS-PC-12",
+   "G": "I5 10th GEN",
+   "H": "32 GB",
+   "I": "480 GB",
+   "J": "5ZH4H9TX500011V",
+   "K": "0WPLHNCI407632D",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 140,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "OLIVE",
+   "C": "DESKTOP",
+   "D": "TS-PC-196",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "4PWLH4TT100436A",
+   "K": "4PWLH4TW500439R",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 141,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "RACHEL",
+   "C": "DESKTOP",
+   "D": "TS-PC-04",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZUFH9DW503240K",
+   "K": "5ZUFH9DW502735Y",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 142,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "GARY",
+   "C": "DESKTOP",
+   "D": "TS-PC-165",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZUFH9DW600576P",
+   "K": "7DU3H9DL101144B",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 143,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "DAVE",
+   "C": "DESKTOP",
+   "D": "TS-PC-197",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "0WPLHNCY407524T",
+   "K": "5ZHX9TX806437D",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 144,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "SHAQ",
+   "C": "DESKTOP",
+   "D": "TS-PC-07",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "4PWLH4TTA00270D",
+   "K": "4PWLH4TT500733N",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 145,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "ROY",
+   "C": "DESKTOP",
+   "D": "TS-PC-08",
+   "G": "I5 11th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHX119TX603254T",
+   "K": "4PWLHUTW400461Z",
+   "L": "YES",
+   "M": "NO",
+   "N": "YES",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 146,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "RICKY",
+   "C": "DESKTOP",
+   "D": "TS-PC-18",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "7DU3H9DVA02053F",
+   "K": "5ZHXH9TX904573X",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "YES",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 147,
+  "cells": {
+   "A": "SMART KEY ",
+   "B": "DANNY",
+   "C": "DESKTOP",
+   "D": "TS-PC-03",
+   "G": "I5 9th GEN",
+   "H": "16 GB",
+   "I": "240 GB",
+   "J": "4PWLH4TW500382R",
+   "K": "4PWLH4TW500401K",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "YES",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 148,
+  "cells": {
+   "A": "WATCHES",
+   "B": "TIA",
+   "C": "DESKTOP",
+   "D": "TS-PC-198",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "5ZHXH9TX804406F",
+   "K": "0WPLHNCY407674F",
+   "L": "YES",
+   "M": "YES",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 149,
+  "cells": {
+   "A": "WATCHES",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-161",
+   "G": "I5 9th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "4PWLH4TW500433M",
+   "K": "5ZH4H9TX504241K",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 150,
+  "cells": {
+   "A": "WATCHES",
+   "B": "DEXTER",
+   "C": "DESKTOP",
+   "D": "TS-PC-167",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "240 GB",
+   "J": "5ZHXH9TX804213F",
+   "K": "5ZH4H9TX504325X",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 151,
+  "cells": {
+   "A": "WATCHES",
+   "B": "ADDY",
+   "C": "DESKTOP",
+   "D": "TS-PC-166",
+   "G": "I5 9th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "5ZHXH9TXA00442L",
+   "K": "5ZH4H9TX504351A",
+   "L": "YES",
+   "M": "YES",
+   "N": "YES",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 152,
+  "cells": {
+   "A": "WATCHES",
+   "B": "AZEE",
+   "C": "DESKTOP",
+   "D": "TS-PC-46",
+   "G": "I5 9th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "7DU3H9DYB01244L",
+   "K": "7DU3H9DYC01080R",
+   "L": "YES",
+   "M": "YES",
+   "N": "YES",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 153,
+  "cells": {
+   "A": "WATCHES",
+   "B": "KAYRA NEW",
+   "C": "DESKTOP",
+   "D": "TS-PC-35",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "4PWLH4TTA00346J",
+   "K": "4PWLH4TW400269M",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 154,
+  "cells": {
+   "A": "WATCHES",
+   "B": "KAYRA OLD",
+   "C": "DESKTOP",
+   "D": "TS-PC-05",
+   "G": "I5 10th GEN",
+   "H": "12 GB",
+   "I": "240 GB",
+   "J": "0WPLHLAXB02609V",
+   "K": "0WPLHNAXB02567F",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 155,
+  "cells": {
+   "A": "WATCHES",
+   "B": "ROMAN",
+   "C": "DESKTOP",
+   "D": "TS-PC-168",
+   "G": "I5 10th GEN",
+   "H": "32 GB",
+   "I": "480 GB",
+   "J": "4PWLH4TW400282A",
+   "K": "4PWLH4TW400271X",
+   "L": "YES",
+   "M": "YES",
+   "N": "YES",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 156,
+  "cells": {
+   "A": "WATCHES",
+   "B": "KENDRICK",
+   "C": "DESKTOP",
+   "D": "TS-PC-36",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "5ZUFH9BW503685K",
+   "K": "BZUTH4TR400479K",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 157,
+  "cells": {
+   "A": "WATCHES",
+   "B": "DAVID",
+   "C": "DESKTOP",
+   "D": "TS-PC-175",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZUFH9DW502227H",
+   "K": "5ZUFH9DW500935Y",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 158,
+  "cells": {
+   "A": "WATCHES",
+   "B": "ROGER",
+   "C": "DESKTOP",
+   "D": "TS-PC-06",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHXH9TX8037027T",
+   "K": "5ZHXH9TX806438E",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "YES",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 159,
+  "cells": {
+   "A": "WATCHES",
+   "B": "DREK",
+   "C": "DESKTOP",
+   "D": "TS-PC-199",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHXH9TX803666A",
+   "K": "5ZHXH9TX806424D",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 160,
+  "cells": {
+   "A": "WATCHES",
+   "B": "REMO",
+   "C": "DESKTOP",
+   "D": "TS-PC-33",
+   "G": "I5 10th GEN",
+   "H": "8 GB",
+   "I": "240 GB",
+   "J": "4PWLH4TRC00016T",
+   "K": "5ZHXH9TX806482Z",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "YES"
+  }
+ },
+ {
+  "r": 161,
+  "cells": {
+   "A": "WATCHES",
+   "B": "CYRUS",
+   "C": "DESKTOP",
+   "D": "TS-PC-180",
+   "G": "I5 12th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "7DU3H9DYC01076A",
+   "K": "5ZHXH9TX603284H",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 162,
+  "cells": {
+   "A": "WATCHES",
+   "B": "DOMINIC",
+   "C": "DESKTOP",
+   "D": "TS-PC-37",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZHX49TX803665K",
+   "K": "5ZHX49TX806444X",
+   "L": "YES",
+   "M": "YES",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 163,
+  "cells": {
+   "A": "MIS / IT",
+   "B": "USING DAY SHIFT",
+   "C": "DESKTOP",
+   "D": "TS-PC-25",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "7DU3H9DYA03087T",
+   "K": "5ZH4H9TX504281X",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 164,
+  "cells": {
+   "A": "MIS / IT",
+   "B": "SANTOSH ",
+   "C": "DESKTOP",
+   "D": "TS-PC-30",
+   "G": "I5 12th GEN",
+   "H": "24 GB",
+   "I": "480 GB",
+   "J": "7DU3H9DYB01284W",
+   "K": "7DU3H9DYB01278J",
+   "L": "YES",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 165,
+  "cells": {
+   "A": "MIS / IT",
+   "B": "SACHIN",
+   "C": "DESKTOP",
+   "D": "TS-PC-48",
+   "G": "I5 10th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZH4H9TX504323N",
+   "K": "4PWLH4TTA00019R",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 166,
+  "cells": {
+   "A": "MIS / IT",
+   "B": "MAHENDRA",
+   "C": "DESKTOP",
+   "D": "TS-PC-49",
+   "G": "I5 11th GEN",
+   "H": "16 GB",
+   "I": "480 GB",
+   "J": "5ZH4H9TX500064Y",
+   "K": "4PWLH4TW800109F",
+   "L": "NO",
+   "M": "NO",
+   "N": "NO",
+   "Q": "NO",
+   "R": "NO"
+  }
+ },
+ {
+  "r": 167,
+  "cells": {
+   "D": "TS-PC-11"
+  }
+ },
+ {
+  "r": 168,
+  "cells": {
+   "D": "TS-PC-19"
+  }
+ },
+ {
+  "r": 169,
+  "cells": {
+   "D": "TS-PC-27"
+  }
+ },
+ {
+  "r": 170,
+  "cells": {
+   "D": "TS-PC-28"
+  }
+ },
+ {
+  "r": 171,
+  "cells": {
+   "D": "TS-PC-45"
+  }
+ },
+ {
+  "r": 172,
+  "cells": {
+   "D": "TS-PC-46"
+  }
+ },
+ {
+  "r": 173,
+  "cells": {
+   "D": "TS-PC-47"
+  }
+ },
+ {
+  "r": 174,
+  "cells": {
+   "D": "TS-PC-48"
+  }
+ },
+ {
+  "r": 175,
+  "cells": {
+   "D": "TS-PC-49"
+  }
+ },
+ {
+  "r": 176,
+  "cells": {
+   "D": "TS-PC-50"
+  }
+ },
+ {
+  "r": 177,
+  "cells": {
+   "D": "TS-PC-103"
+  }
+ },
+ {
+  "r": 178,
+  "cells": {
+   "D": "TS-PC-109"
+  }
+ },
+ {
+  "r": 179,
+  "cells": {
+   "D": "TS-PC-119"
+  }
+ },
+ {
+  "r": 180,
+  "cells": {
+   "D": "TS-PC-153"
+  }
+ },
+ {
+  "r": 181,
+  "cells": {
+   "D": "TS-PC-154"
+  }
+ },
+ {
+  "r": 182,
+  "cells": {
+   "D": "TS-PC-155"
+  }
+ },
+ {
+  "r": 183,
+  "cells": {
+   "D": "TS-PC-156"
+  }
+ },
+ {
+  "r": 184,
+  "cells": {
+   "D": "TS-PC-157"
+  }
+ },
+ {
+  "r": 185,
+  "cells": {
+   "D": "TS-PC-158"
+  }
+ }
+]

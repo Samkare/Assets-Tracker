@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "it-tracker-client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:client", "--prefix", "tracker-system"],
+      "port": 5173
+    }
+  ]
+}

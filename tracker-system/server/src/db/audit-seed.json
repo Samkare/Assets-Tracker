@@ -1,0 +1,128 @@
+[
+  {
+    "ts": "2026-06-15T09:24:00",
+    "actor": "Santosh",
+    "action": "edited",
+    "tag": "TS-PC-92",
+    "subject": "Edward",
+    "dept": "Purchase",
+    "detail": "RAM updated 8 GB → 16 GB"
+  },
+  {
+    "ts": "2026-06-15T08:52:00",
+    "actor": "Santosh",
+    "action": "assigned",
+    "tag": "TS-PC-201",
+    "subject": "Naomi",
+    "dept": "Sales Outbound",
+    "detail": "New desktop assigned"
+  },
+  {
+    "ts": "2026-06-14T17:10:00",
+    "actor": "Sachin",
+    "action": "repair",
+    "tag": "TS-PC-176",
+    "subject": "Herry",
+    "dept": "Smart Key",
+    "detail": "Flagged for repair — monitor flicker"
+  },
+  {
+    "ts": "2026-06-14T11:38:00",
+    "actor": "Santosh",
+    "action": "edited",
+    "tag": "TS-PC-181",
+    "subject": "Denver",
+    "dept": "Sales",
+    "detail": "Added 2nd monitor — now Dual"
+  },
+  {
+    "ts": "2026-06-13T15:02:00",
+    "actor": "Mahendra",
+    "action": "assigned",
+    "tag": "TS-PC-157",
+    "subject": "Dino",
+    "dept": "Watches",
+    "detail": "Headphone + speaker added to kit"
+  },
+  {
+    "ts": "2026-06-12T10:19:00",
+    "actor": "Santosh",
+    "action": "removed",
+    "tag": "TS-PC-066",
+    "subject": "Old spare unit",
+    "dept": "MIS/IT",
+    "detail": "Decommissioned — failed PSU"
+  },
+  {
+    "ts": "2026-06-12T09:05:00",
+    "actor": "Sachin",
+    "action": "added",
+    "tag": "TS-PC-200",
+    "subject": "Stock",
+    "dept": "MIS/IT",
+    "detail": "New desktop registered to inventory"
+  },
+  {
+    "ts": "2026-06-11T14:47:00",
+    "actor": "Santosh",
+    "action": "reassigned",
+    "tag": "TS-PC-134",
+    "subject": "Atlas → Priya",
+    "dept": "Accounts",
+    "detail": "Reassigned after role change"
+  },
+  {
+    "ts": "2026-06-10T16:33:00",
+    "actor": "Mahendra",
+    "action": "edited",
+    "tag": "TS-PC-154",
+    "subject": "Philip",
+    "dept": "Purchase",
+    "detail": "Storage updated 256 GB → 480 GB SSD"
+  },
+  {
+    "ts": "2026-06-10T09:58:00",
+    "actor": "Santosh",
+    "action": "assigned",
+    "tag": "TS-PC-189",
+    "subject": "Micheal",
+    "dept": "Surya",
+    "detail": "IP phone line provisioned"
+  },
+  {
+    "ts": "2026-06-09T13:21:00",
+    "actor": "Sachin",
+    "action": "repair",
+    "tag": "TS-PC-039",
+    "subject": "James",
+    "dept": "Sales",
+    "detail": "Returned from repair — keyboard replaced"
+  },
+  {
+    "ts": "2026-06-08T11:12:00",
+    "actor": "Santosh",
+    "action": "edited",
+    "tag": "TS-PC-158",
+    "subject": "Adam",
+    "dept": "Sales Outbound",
+    "detail": "CPU corrected to Intel i5 12th Gen"
+  },
+  {
+    "ts": "2026-06-06T15:40:00",
+    "actor": "Mahendra",
+    "action": "added",
+    "tag": "TS-PC-199",
+    "subject": "Stock",
+    "dept": "MIS/IT",
+    "detail": "Bulk intake — 3 units registered"
+  },
+  {
+    "ts": "2026-06-05T10:04:00",
+    "actor": "Santosh",
+    "action": "removed",
+    "tag": "TS-PC-051",
+    "subject": "Damaged unit",
+    "dept": "Shipping",
+    "detail": "Written off — water damage"
+  }
+]

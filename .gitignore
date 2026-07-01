@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build output
+dist/
+build/
+
+# Logs
+logs/
+*.log
+
+# Databases (SQLite + WAL/SHM + backups)
+*.db
+*.db-shm
+*.db-wal
+*.db.backup-*
+data/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+
+# Environment
+.env
+.env.local
+*.local

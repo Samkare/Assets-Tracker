@@ -1,0 +1,16 @@
+{
+  "name": "@its/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./constants": "./src/constants.js",
+    "./assetLogic": "./src/assetLogic.js",
+    "./validation": "./src/validation.js"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}

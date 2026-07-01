@@ -1,0 +1,185 @@
+/* Design tokens — single source of truth for the IT Asset Tracker UI.
+   Values match the original prototype exactly (no visual change); this file just
+   names them so components stop hardcoding and the system becomes theme-able.
+
+   NOTE: --fs/--sp/--rad are an exact-value first pass (every literal now flows
+   through a token). Rationalizing these to a tighter scale is a design-review
+   task — it shifts pixels and must be signed off visually. */
+
+:root {
+  /* ---------- neutral / surface ---------- */
+  --bg: #F7F6FA;
+  --surface: #FFFFFF;
+  --white: #FFFFFF;
+  --black: #000000;
+  --border: #EAE7F1;
+  --border-strong: #DBD7E8;
+  --stripe: #FBFAFD;
+  --hover: #F2F0F8;
+
+  /* ---------- text ---------- */
+  --text: #1B1825;
+  --text-2: #5B556B;   /* AA on white (~6.4:1) */
+  --text-3: #6E697E;   /* darkened from #9893A8 → AA ~4.6:1 for muted/captions */
+  --ink: #1C1E25;
+
+  /* ---------- brand (theme-able) ---------- */
+  --accent: #475569;
+  --violet: #8B5CF6;
+
+  /* ---------- semantic state ---------- */
+  --success: #1B7A45;
+  --success-bg: #E6F4EC;
+  --green-bg: #E6F4EC;   /* legacy alias */
+  --green-fg: #1B7A45;   /* legacy alias */
+  --danger: #E5484D;
+  --danger-fg: #B3261E;
+  --danger-alt: #C5443C;
+  --danger-bg: #FCEAE8;
+  --warn: #B8860B;
+  --warn-fg: #98690C;
+  --warn-2: #D9A106;
+  --warn-bg: #FBF0DC;
+  --repair: #C2410C;
+  --repair-bg: #FCEAE4;
+  --repair-bg-soft: #FCE9E4;
+  --info-bg: #E5EEFB;
+  --info-fg: #1F5FBF;
+
+  /* ---------- font family ---------- */
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ---------- font weight ---------- */
+  --weight-450: 450;
+  --weight-medium: 500;
+  --weight-550: 550;
+  --weight-semibold: 600;
+  --weight-650: 650;
+  --weight-bold: 680;
+
+  /* ---------- font size (8-step modular scale) ---------- */
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-17: 17px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-21: 21px;
+  --fs-24: 24px;
+  --fs-25: 25px;
+  --fs-28: 28px;
+
+  /* ---------- spacing (exact set) ---------- */
+  --sp-n10: -10px;
+  --sp-n6: -6px;
+  --sp-1: 1px;
+  --sp-2: 2px;
+  --sp-3: 3px;
+  --sp-4: 4px;
+  --sp-5: 5px;
+  --sp-6: 6px;
+  --sp-7: 7px;
+  --sp-8: 8px;
+  --sp-9: 9px;
+  --sp-10: 10px;
+  --sp-11: 11px;
+  --sp-12: 12px;
+  --sp-13: 13px;
+  --sp-14: 14px;
+  --sp-15: 15px;
+  --sp-16: 16px;
+  --sp-17: 17px;
+  --sp-18: 18px;
+  --sp-19: 19px;
+  --sp-20: 20px;
+  --sp-22: 22px;
+  --sp-24: 24px;
+  --sp-28: 28px;
+  --sp-30: 30px;
+  --sp-32: 32px;
+  --sp-36: 36px;
+  --sp-40: 40px;
+  --sp-48: 48px;
+  --sp-52: 52px;
+  --sp-64: 64px;
+
+  /* ---------- radius (exact set) ---------- */
+  --rad-2: 2px;
+  --rad-3: 3px;
+  --rad-4: 4px;
+  --rad-5: 5px;
+  --rad-6: 6px;
+  --rad-7: 7px;
+  --rad-8: 8px;
+  --rad-9: 9px;
+  --rad-10: 10px;
+  --rad-11: 11px;
+  --rad-12: 12px;
+  --rad-16: 16px;
+  --rad-18: 18px;
+  --radius: 12px;        /* legacy alias (still referenced) */
+  --radius-pill: 999px;
+
+  /* ---------- S1: surface system (3-stop hierarchy) ---------- */
+  --surface-1: var(--surface);
+  --surface-2: color-mix(in srgb, var(--bg) 30%, var(--surface));
+  --surface-elevated: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--bg) 35%, var(--surface)));
+
+  /* ---------- elevation ---------- */
+  --shadow-sm: 0 1px 2px rgba(26, 22, 38, 0.05);
+  --shadow-md: 0 2px 4px rgba(26, 22, 38, 0.05), 0 10px 28px rgba(26, 22, 38, 0.08);
+  --shadow-lg: 0 6px 16px rgba(26, 22, 38, 0.09), 0 28px 70px rgba(26, 22, 38, 0.18);
+  /* S1: capped card shadows — 2 layers rest / 3 hover */
+  --shadow-card: 0 1px 2px rgba(26,22,38,.05), 0 6px 18px rgba(26,22,38,.07);
+  --shadow-card-hover: 0 2px 6px rgba(26,22,38,.08), 0 12px 28px rgba(26,22,38,.10), 0 24px 48px rgba(26,22,38,.10);
+  /* dialed-back modal shadow (alpha .26 → .18) */
+  --shadow-modal: 0 4px 14px rgba(26,22,38,.10), 0 20px 50px rgba(26,22,38,.14), 0 40px 90px rgba(26,22,38,.18);
+
+  /* ---------- motion (S1: unified vocabulary) ---------- */
+  --motion-fast: 120ms;
+  --motion-base: 180ms;
+  --motion-slow: 240ms;
+  --motion-press: 80ms;
+  --dur-fast: 0.12s;
+  --dur-base: 0.18s;
+  --dur-slow: 0.28s;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-inout: cubic-bezier(0.32, 0.72, 0.22, 1);
+  --ease-soft: cubic-bezier(0.22, 0.7, 0.24, 1);
+}
+
+/* Global reduced-motion guard */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ---------- global interaction / a11y states ---------- */
+
+/* visible keyboard focus everywhere */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* real disabled state for buttons + inputs (was a .btn-disabled class only) */
+button:disabled,
+.btn:disabled,
+.btn[aria-disabled="true"],
+.btn-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.input:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--hover);
+}
