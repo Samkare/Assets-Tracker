@@ -313,6 +313,20 @@ export const useUpdatePO    = (o) => usePOMutation(({ id, input }) => api.put(`/
 export const useSetPOStatus = (o) => usePOMutation(({ id, status }) => api.patch(`/purchase-orders/${id}/status`, { status }), o);
 export const useDeletePO    = (o) => usePOMutation((id) => api.del(`/purchase-orders/${id}`), o);
 
+// Full PO detail (line items + computed totals + attachments). Fetched when a PO modal opens.
+export function usePurchaseOrder(id, enabled = true) {
+  return useQuery({ queryKey: ["purchase-orders", "detail", id], queryFn: () => api.get(`/purchase-orders/${id}`), enabled: enabled && !!id });
+}
+export function useUploadPOAttachment(poId, opts) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file) => api.upload(`/purchase-orders/${poId}/attachments`, file),
+    onSuccess: (...a) => { qc.invalidateQueries({ queryKey: ["purchase-orders"] }); opts?.onSuccess?.(...a); },
+    onError: opts?.onError
+  });
+}
+export const useDeletePOAttachment = (o) => usePOMutation((aid) => api.del(`/purchase-orders/attachments/${aid}`), o);
+
 // === F2 User preferences ===
 export function usePref(key, enabled = true) {
   return useQuery({ queryKey: ["pref", key], queryFn: () => api.get(`/prefs/${key}`).then((r) => r.value), enabled });
