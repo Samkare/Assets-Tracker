@@ -25,16 +25,19 @@ function rowToPR(r) {
 // Atomic PR-YYYY-NNN generator. Called only from inside the create transaction, so the
 // MAX-lookup and the INSERT cannot interleave within this (single-threaded) process;
 // the UNIQUE(pr_number) constraint is the final cross-process backstop.
-// Year comes from SQLite (UTC) so it matches created_at exactly.
+// Year+month come from SQLite (UTC) so they match created_at exactly.
+// Format: PR-<Mon>-<YYYY>-NNN (e.g. PR-Jul-2026-001). The sequence resets each month
+// (the LIKE only matches the current month's rows), so August starts fresh at -001.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 function nextPrNumber() {
-  const { y: year } = db.prepare("SELECT strftime('%Y','now') AS y").get();
-  const prefix = `PR-${year}-`;
+  const { y: year, m } = db.prepare("SELECT strftime('%Y','now') AS y, strftime('%m','now') AS m").get();
+  const prefix = `PR-${MONTHS[Number(m) - 1]}-${year}-`; // e.g. PR-Jul-2026-
   const { maxSeq } = db.prepare(
     `SELECT MAX(CAST(substr(pr_number, ?) AS INTEGER)) AS maxSeq
        FROM purchase_requests WHERE pr_number LIKE ?`
   ).get(prefix.length + 1, `${prefix}%`);
   const seq = (maxSeq || 0) + 1;
-  return `${prefix}${String(seq).padStart(3, "0")}`; // PR-2026-001 … PR-2026-999 … PR-2026-1000
+  return `${prefix}${String(seq).padStart(3, "0")}`; // PR-Jul-2026-001 … -999 … -1000
 }
 
 export function listPurchaseRequests({ status, department, category, q } = {}) {

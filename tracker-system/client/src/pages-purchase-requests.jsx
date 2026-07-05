@@ -1,6 +1,6 @@
-// Task Source — Purchase Requests page (raise → approve/reject procurement requests)
-import React, { useState } from "react";
-import { Icon, ICONS, DeptBadge } from "./components.jsx";
+// Task Source — Purchase Requests page (raise → review → approve/reject procurement requests)
+import React, { useState, useEffect } from "react";
+import { Icon, ICONS, DeptBadge, Field } from "./components.jsx";
 import {
   usePurchaseRequests, useCreatePurchaseRequest, useSetPRStatus, useDeletePurchaseRequest
 } from "./api/hooks.js";
@@ -16,15 +16,19 @@ const STATUS_TONE = {
 };
 function PRStatusPill({ status }) {
   const c = STATUS_TONE[status] || "var(--text-3)";
-  return (
-    <span className="status-pill" style={{ color: c, borderColor: c }}>{status}</span>
-  );
+  return <span className="status-pill" style={{ color: c, borderColor: c }}>{status}</span>;
 }
 function fmtDate(iso) {
   if (!iso) return "—";
   const d = new Date(iso);
   if (isNaN(d)) return "—";
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+function fmtDateTime(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d)) return "—";
+  return d.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" });
 }
 function fmtMoney(v) {
   if (v == null || v === "") return "—";
@@ -112,18 +116,27 @@ function NewRequestForm({ onClose }) {
   );
 }
 
-/* ---------- approve / reject / delete ---------- */
-function PRActions({ pr, canAdmin }) {
+/* ---------- detail / review modal ---------- */
+// Approvers open this to VERIFY the full request before deciding. Approve/Reject live here
+// (not in the table) so an Admin can't act without seeing the details first.
+function PRDetailModal({ pr, canAdmin, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const setStatus = useSetPRStatus({
-    onSuccess: (r) => showToast(`${r.prNumber} ${r.status.toLowerCase()}`, "success"),
+    onSuccess: (r) => { showToast(`${r.prNumber} ${r.status.toLowerCase()}`, "success"); onClose(); },
     onError: (e) => showToast(e.message, "error")
   });
   const del = useDeletePurchaseRequest({
-    onSuccess: () => showToast(`${pr.prNumber} deleted`, "success"),
+    onSuccess: () => { showToast(`${pr.prNumber} deleted`, "success"); onClose(); },
     onError: (e) => showToast(e.message, "error")
   });
+  const busy = setStatus.isPending || del.isPending;
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   const reject = async () => {
     const ok = await confirm({ title: `Reject ${pr.prNumber}?`, body: `${pr.category} request from ${pr.requestedBy}.`, confirmLabel: "Reject" });
@@ -134,19 +147,49 @@ function PRActions({ pr, canAdmin }) {
     if (ok) del.mutate(pr.id);
   };
 
-  if (!canAdmin) return <span className="cell-muted">—</span>;
-  const busy = setStatus.isPending || del.isPending;
   return (
-    <div className="repair-actions">
-      {pr.status === "Pending" ? (
-        <React.Fragment>
-          <button type="button" className="btn btn-primary btn-sm" disabled={busy}
-            onClick={() => setStatus.mutate({ id: pr.id, status: "Approved" })}>Approve</button>
-          <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
-        </React.Fragment>
-      ) : (
-        <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
-      )}
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}
+      onClick={onClose} role="dialog" aria-modal="true" aria-label={`Purchase request ${pr.prNumber}`}>
+      <div className="table-card" style={{ maxWidth: 620, width: "100%", padding: "var(--sp-20)", maxHeight: "90vh", overflowY: "auto" }}
+        onClick={(e) => e.stopPropagation()}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--sp-12)", marginBottom: "var(--sp-16)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--sp-10)" }}>
+            <span className="mono cell-tag" style={{ fontSize: "1.05rem" }}>{pr.prNumber}</span>
+            <PRStatusPill status={pr.status} />
+          </div>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Close"><Icon d={ICONS.close} size={16} /></button>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "var(--sp-12)" }}>
+          <Field label="Requested by">{pr.requestedBy}</Field>
+          <Field label="Department">{pr.department ? <DeptBadge dept={pr.department} /> : "—"}</Field>
+          <Field label="Category">{pr.category}</Field>
+          <Field label="Required by">{fmtDate(pr.requiredBy)}</Field>
+          <Field label="Estimated cost">{fmtMoney(pr.estimatedCost)}</Field>
+          <Field label="Suggested vendors">{pr.suggestedVendors || "—"}</Field>
+          <Field label="Raised on">{fmtDateTime(pr.createdAt)}</Field>
+        </div>
+        <div style={{ marginTop: "var(--sp-14)" }}>
+          <div className="field-label">Business purpose</div>
+          <div className="field-value" style={{ whiteSpace: "pre-wrap", marginTop: 4 }}>{pr.businessPurpose}</div>
+        </div>
+
+        <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
+          {canAdmin && pr.status === "Pending" ? (
+            <React.Fragment>
+              <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
+              <button type="button" className="btn btn-primary btn-sm" disabled={busy}
+                onClick={() => setStatus.mutate({ id: pr.id, status: "Approved" })}>
+                {setStatus.isPending ? "Saving…" : "Approve"}
+              </button>
+            </React.Fragment>
+          ) : canAdmin ? (
+            <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
+          ) : (
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -154,13 +197,14 @@ function PRActions({ pr, canAdmin }) {
 function PurchaseRequestsPage({ canManage, canAdmin }) {
   const [filter, setFilter] = useState("All");
   const [formOpen, setFormOpen] = useState(false);
+  const [selected, setSelected] = useState(null); // PR being reviewed in the modal
   const { data: rows = [], isLoading } = usePurchaseRequests(filter === "All" ? {} : { status: filter });
 
   return (
     <React.Fragment>
       <div className="page-head">
         <h1 className="page-title">Purchase Requests</h1>
-        <p className="page-caption">Raise and approve procurement &amp; service requests</p>
+        <p className="page-caption">Raise, review &amp; approve procurement &amp; service requests</p>
       </div>
 
       <div className="audit-filters">
@@ -202,24 +246,27 @@ function PurchaseRequestsPage({ canManage, canAdmin }) {
                   <th><span className="th-plain">Purpose</span></th>
                   <th><span className="th-plain">Required by</span></th>
                   <th><span className="th-plain">Est. cost</span></th>
-                  <th><span className="th-plain">Vendors</span></th>
                   <th><span className="th-plain">Status</span></th>
                   <th><span className="th-plain">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((pr) => (
-                  <tr key={pr.id}>
+                  <tr key={pr.id} onClick={() => setSelected(pr)} style={{ cursor: "pointer" }} title="Open to review">
                     <td><span className="mono cell-tag">{pr.prNumber}</span></td>
                     <td>{pr.requestedBy}</td>
                     <td>{pr.department ? <DeptBadge dept={pr.department} /> : <span className="cell-muted">—</span>}</td>
                     <td>{pr.category}</td>
-                    <td style={{ maxWidth: 260, whiteSpace: "normal" }}>{pr.businessPurpose}</td>
+                    <td style={{ maxWidth: 240, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pr.businessPurpose}</td>
                     <td className="cell-muted">{fmtDate(pr.requiredBy)}</td>
                     <td>{pr.estimatedCost != null ? <span className="mono">{fmtMoney(pr.estimatedCost)}</span> : <span className="cell-muted">—</span>}</td>
-                    <td>{pr.suggestedVendors || <span className="cell-muted">—</span>}</td>
                     <td><PRStatusPill status={pr.status} /></td>
-                    <td><PRActions pr={pr} canAdmin={canAdmin} /></td>
+                    <td>
+                      <button type="button" className="btn btn-secondary btn-sm"
+                        onClick={(e) => { e.stopPropagation(); setSelected(pr); }}>
+                        {canAdmin && pr.status === "Pending" ? "Review" : "View"}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -227,6 +274,8 @@ function PurchaseRequestsPage({ canManage, canAdmin }) {
           </div>
         </div>
       )}
+
+      {selected ? <PRDetailModal pr={selected} canAdmin={canAdmin} onClose={() => setSelected(null)} /> : null}
     </React.Fragment>
   );
 }
