@@ -270,6 +270,63 @@ export function useNotifications(enabled = true) {
   return useQuery({ queryKey: ["notifications"], queryFn: () => api.get("/notifications"), enabled, refetchInterval: 60_000 });
 }
 
+// === Purchase Requests (PR module) ===
+export function usePurchaseRequests(params = {}, enabled = true) {
+  return useQuery({ queryKey: ["purchase-requests", params], queryFn: () => api.get(`/purchase-requests${qs(params)}`), enabled });
+}
+function usePRMutation(fn, opts) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (...a) => {
+      qc.invalidateQueries({ queryKey: ["purchase-requests"] });
+      qc.invalidateQueries({ queryKey: ["audit"] });
+      opts?.onSuccess?.(...a);
+    },
+    onError: opts?.onError
+  });
+}
+export const useCreatePurchaseRequest = (o) => usePRMutation((b) => api.post("/purchase-requests", b), o);
+export const useUpdatePurchaseRequest = (o) => usePRMutation(({ id, input }) => api.put(`/purchase-requests/${id}`, input), o);
+export const useSetPRStatus           = (o) => usePRMutation(({ id, status }) => api.patch(`/purchase-requests/${id}/status`, { status }), o);
+export const useDeletePurchaseRequest = (o) => usePRMutation((id) => api.del(`/purchase-requests/${id}`), o);
+
+// === Purchase Orders (PO module) ===
+export function usePurchaseOrders(params = {}, enabled = true) {
+  return useQuery({ queryKey: ["purchase-orders", params], queryFn: () => api.get(`/purchase-orders${qs(params)}`), enabled });
+}
+function usePOMutation(fn, opts) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (...a) => {
+      qc.invalidateQueries({ queryKey: ["purchase-orders"] });
+      qc.invalidateQueries({ queryKey: ["purchase-requests"] }); // a PR's "has active PO" state may change
+      qc.invalidateQueries({ queryKey: ["audit"] });
+      opts?.onSuccess?.(...a);
+    },
+    onError: opts?.onError
+  });
+}
+export const useGeneratePO  = (o) => usePOMutation((b) => api.post("/purchase-orders", b), o);
+export const useUpdatePO    = (o) => usePOMutation(({ id, input }) => api.put(`/purchase-orders/${id}`, input), o);
+export const useSetPOStatus = (o) => usePOMutation(({ id, status }) => api.patch(`/purchase-orders/${id}/status`, { status }), o);
+export const useDeletePO    = (o) => usePOMutation((id) => api.del(`/purchase-orders/${id}`), o);
+
+// Full PO detail (line items + computed totals + attachments). Fetched when a PO modal opens.
+export function usePurchaseOrder(id, enabled = true) {
+  return useQuery({ queryKey: ["purchase-orders", "detail", id], queryFn: () => api.get(`/purchase-orders/${id}`), enabled: enabled && !!id });
+}
+export function useUploadPOAttachment(poId, opts) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file) => api.upload(`/purchase-orders/${poId}/attachments`, file),
+    onSuccess: (...a) => { qc.invalidateQueries({ queryKey: ["purchase-orders"] }); opts?.onSuccess?.(...a); },
+    onError: opts?.onError
+  });
+}
+export const useDeletePOAttachment = (o) => usePOMutation((aid) => api.del(`/purchase-orders/attachments/${aid}`), o);
+
 // === F2 User preferences ===
 export function usePref(key, enabled = true) {
   return useQuery({ queryKey: ["pref", key], queryFn: () => api.get(`/prefs/${key}`).then((r) => r.value), enabled });

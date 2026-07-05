@@ -1,6 +1,6 @@
 // zod schemas — used by API routes (request bodies) and import (per-row validation).
 import { z } from "zod";
-import { ASSET_TYPES, ASSET_STATUSES, ROLES } from "./constants.js";
+import { ASSET_TYPES, ASSET_STATUSES, ROLES, PR_CATEGORIES, PR_STATUSES, PO_STATUSES } from "./constants.js";
 
 const optStr = z.string().trim().max(120).optional().nullable();
 
@@ -67,4 +67,58 @@ export const employeeInputSchema = z.object({
 export const departmentInputSchema = z.object({
   name: z.string().trim().min(1).max(60),
   hue: z.number().int().min(0).max(360).optional()
+});
+
+// ── Purchase Request (PR) module ───────────────────────────────────────────
+// Requestor-submitted fields only. pr_number, created_at, and status are set
+// server-side (status defaults to 'Pending'), so they are intentionally absent here.
+export const purchaseRequestInputSchema = z.object({
+  requestedBy:      z.string().trim().min(1, "Requested by is required").max(80),
+  department:       z.string().trim().min(1, "Department required").max(60),
+  category:         z.enum(PR_CATEGORIES),
+  businessPurpose:  z.string().trim().min(1, "Business purpose is required").max(2000),
+  requiredBy:       z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").nullable().optional(),
+  estimatedCost:    z.number().nonnegative("Cost cannot be negative").max(1_000_000_000).nullable().optional(),
+  suggestedVendors: z.string().trim().max(300).nullable().optional()
+});
+
+// Edits reuse the same rules but every field is optional (PATCH semantics).
+export const purchaseRequestUpdateSchema = purchaseRequestInputSchema.partial();
+
+// Approve / reject — the privileged status transition (separate endpoint, role-gated in Step 2).
+export const purchaseRequestStatusSchema = z.object({
+  status: z.enum(PR_STATUSES)
+});
+
+// ── Purchase Order (PO) module ─────────────────────────────────────────────
+// A PO is generated from an APPROVED PR (prId). po_number, po_date, department,
+// category, and default status are set server-side (dept/category snapshot from the PR),
+// so they are intentionally absent here.
+// A single invoice line item. amount (= quantity*rate), CGST/SGST and the totals are DERIVED
+// (computed in the service/UI), so they are intentionally not part of the input.
+export const purchaseOrderItemSchema = z.object({
+  description: z.string().trim().min(1, "Item description required").max(300),
+  quantity:    z.number().positive("Quantity must be greater than 0").max(1_000_000),
+  rate:        z.number().nonnegative("Rate cannot be negative").max(1_000_000_000),
+  taxRate:     z.number().min(0, "Tax % cannot be negative").max(100, "Tax % looks too high").default(18)
+});
+
+export const purchaseOrderInputSchema = z.object({
+  prId:            z.number().int().positive(),                       // the approved PR to convert
+  vendor:          z.string().trim().min(1, "Vendor is required").max(120),
+  supplierId:      z.number().int().positive().nullable().optional(), // set when chosen from the Suppliers list
+  billingAddress:  z.string().trim().max(500).nullable().optional(),
+  shippingAddress: z.string().trim().max(500).nullable().optional(),
+  terms:           z.string().trim().max(2000).nullable().optional(),
+  interState:      z.boolean().default(false),  // true → IGST (full rate); false → CGST+SGST split
+  // grand total is now computed from these line items (finalAmount is no longer client input)
+  items:           z.array(purchaseOrderItemSchema).min(1, "Add at least one line item").max(100)
+});
+
+// Edits (while Draft) reuse the rules but can't move the PO to a different PR.
+export const purchaseOrderUpdateSchema = purchaseOrderInputSchema.partial().omit({ prId: true });
+
+// Draft → Sent to Vendor → Fulfilled / Cancelled — Admin-only transition (role-gated in Step 2).
+export const purchaseOrderStatusSchema = z.object({
+  status: z.enum(PO_STATUSES)
 });

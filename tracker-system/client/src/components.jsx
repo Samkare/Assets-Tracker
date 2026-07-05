@@ -250,6 +250,10 @@ export function Sidebar({ active, onNavigate, open, onClose, counts = {}, user, 
     { key: "Repairs", icon: ICONS.wrench },
     { key: "Software", icon: ICONS.diamond }]
   },
+  { label: "Procurement", items: [
+    { key: "Purchase Requests", icon: ICONS.template },
+    { key: "Purchase Orders", icon: ICONS.mail }]
+  },
   { label: "Insights", items: [
     { key: "Reports", icon: ICONS.reports }]
   },
