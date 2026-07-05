@@ -5,11 +5,13 @@ import db from "../db/connection.js";
 import { insertAudit } from "../db/repo.js";
 import { HttpError } from "../middleware/error.js";
 
-// LEFT JOIN so standalone POs (pr_id NULL) are included; pr_number is null for them.
+// LEFT JOIN purchase_requests so standalone POs (pr_id NULL) are included; pr_number is null for them.
+// LEFT JOIN suppliers surfaces the vendor's saved address + GSTIN for the detail view / printed PO.
 const PO_SELECT = `
-  SELECT po.*, pr.pr_number
+  SELECT po.*, pr.pr_number, su.address AS vendor_address, su.gst_number AS vendor_gst
   FROM purchase_orders po
-  LEFT JOIN purchase_requests pr ON pr.id = po.pr_id`;
+  LEFT JOIN purchase_requests pr ON pr.id = po.pr_id
+  LEFT JOIN suppliers su ON su.id = po.supplier_id`;
 
 const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
@@ -82,7 +84,7 @@ export function getPurchaseOrder(id) {
   if (!r) return null;
   const items = getItems(id);
   const { lines, totals } = computeTotals(items, !!r.inter_state);
-  return { ...rowToPOSummary(r), billingAddress: r.billing_address ?? null, shippingAddress: r.shipping_address ?? null, terms: r.terms ?? null, items: lines, totals, attachments: getAttachments(id) };
+  return { ...rowToPOSummary(r), billingAddress: r.billing_address ?? null, shippingAddress: r.shipping_address ?? null, terms: r.terms ?? null, vendorAddress: r.vendor_address ?? null, vendorGst: r.vendor_gst ?? null, items: lines, totals, attachments: getAttachments(id) };
 }
 
 // Convenience default used by the route: the PR's first suggested vendor (or null).
