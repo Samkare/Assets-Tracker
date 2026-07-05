@@ -62,3 +62,11 @@ export const PR_CATEGORIES = [
 ];
 
 export const PR_STATUSES = ["Pending", "Approved", "Rejected"];
+
+// Purchase Order module — PO lifecycle statuses + company address defaults.
+export const PO_STATUSES = ["Draft", "Sent to Vendor", "Fulfilled", "Cancelled"];
+// Pre-filled into the PO form; edit to your real registered address when ready.
+export const COMPANY_DEFAULTS = {
+  billingAddress:  "Task Source HQ, Main Office",
+  shippingAddress: "Task Source HQ, Main Office"
+};

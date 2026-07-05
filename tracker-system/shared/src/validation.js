@@ -1,6 +1,6 @@
 // zod schemas — used by API routes (request bodies) and import (per-row validation).
 import { z } from "zod";
-import { ASSET_TYPES, ASSET_STATUSES, ROLES, PR_CATEGORIES, PR_STATUSES } from "./constants.js";
+import { ASSET_TYPES, ASSET_STATUSES, ROLES, PR_CATEGORIES, PR_STATUSES, PO_STATUSES } from "./constants.js";
 
 const optStr = z.string().trim().max(120).optional().nullable();
 
@@ -88,4 +88,26 @@ export const purchaseRequestUpdateSchema = purchaseRequestInputSchema.partial();
 // Approve / reject — the privileged status transition (separate endpoint, role-gated in Step 2).
 export const purchaseRequestStatusSchema = z.object({
   status: z.enum(PR_STATUSES)
+});
+
+// ── Purchase Order (PO) module ─────────────────────────────────────────────
+// A PO is generated from an APPROVED PR (prId). po_number, po_date, department,
+// category, and default status are set server-side (dept/category snapshot from the PR),
+// so they are intentionally absent here.
+export const purchaseOrderInputSchema = z.object({
+  prId:            z.number().int().positive(),                       // the approved PR to convert
+  vendor:          z.string().trim().min(1, "Vendor is required").max(120),
+  supplierId:      z.number().int().positive().nullable().optional(), // set when chosen from the Suppliers list
+  finalAmount:     z.number().nonnegative("Amount cannot be negative").max(1_000_000_000).nullable().optional(),
+  billingAddress:  z.string().trim().max(500).nullable().optional(),
+  shippingAddress: z.string().trim().max(500).nullable().optional(),
+  terms:           z.string().trim().max(2000).nullable().optional()
+});
+
+// Edits (while Draft) reuse the rules but can't move the PO to a different PR.
+export const purchaseOrderUpdateSchema = purchaseOrderInputSchema.partial().omit({ prId: true });
+
+// Draft → Sent to Vendor → Fulfilled / Cancelled — Admin-only transition (role-gated in Step 2).
+export const purchaseOrderStatusSchema = z.object({
+  status: z.enum(PO_STATUSES)
 });
