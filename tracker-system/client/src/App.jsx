@@ -58,6 +58,15 @@ function PinnableTiles({ stats, summary, totalInventory, assets, onOpenDept, onN
   // attach the right "good direction" to each metric's Δ-vs-last-week (from summary.trends)
   const tr = summary.trends || {};
   const trend = (key, good) => (tr[key] ? { ...tr[key], good } : undefined);
+  // procurement metrics
+  const pendingPRs = summary.pendingPRs ?? 0;
+  const openPOs = summary.openPOs ?? 0;
+  const fmtINR = (v) => {
+    const n = Number(v) || 0;
+    if (n >= 1e7) return "₹" + (n / 1e7).toFixed(2) + "Cr";
+    if (n >= 1e5) return "₹" + (n / 1e5).toFixed(2) + "L";
+    return "₹" + n.toLocaleString("en-IN");
+  };
 
   // Tiles are ordered most-actionable first. Each "ops" tile turns red (tone:danger) only
   // when its number is non-zero — a green/neutral board means nothing needs attention.
@@ -66,6 +75,10 @@ function PinnableTiles({ stats, summary, totalInventory, assets, onOpenDept, onN
     { id: "renewals",      props: { label: "Software Renewals", value: renewals, sub: "due in 60 days", icon: ICONS.diamond, ring: 272, tone: renewals ? "warn" : undefined, trend: trend("softwareRenewals", false), onClick: () => onNav("Software") } },
     { id: "spares",        props: { label: "Spares in Store", value: summary.spares ?? 0, sub: "ready to deploy", icon: ICONS.assets, ring: 240, trend: trend("spares", true), onClick: () => onNav("Assets") } },
     { id: "utilization",   props: { label: "Fleet Utilization", value: util + "%", sub: `${stats.assigned} of ${totalInventory} assigned`, accent: true, icon: ICONS.departments, ring: 168, trend: trend("utilization", true) } },
+    // procurement tiles
+    { id: "pendingPRs",    props: { label: "Pending PR Approvals", value: pendingPRs, sub: pendingPRs ? "awaiting a decision" : "all cleared", icon: ICONS.template, ring: 272, tone: pendingPRs ? "warn" : undefined, onClick: () => onNav("Purchase Requests", "Pending") } },
+    { id: "openPOs",       props: { label: "Open POs", value: openPOs, sub: "draft or sent to vendor", icon: ICONS.mail, ring: 210, onClick: () => onNav("Purchase Orders", "Open") } },
+    { id: "monthSpend",    props: { label: "This Month's Spend", value: fmtINR(summary.monthPOSpend ?? 0), sub: "PO grand totals", icon: ICONS.reports, ring: 140, onClick: () => onNav("Purchase Orders") } },
     // context tiles — org snapshot, not action triggers
     { id: "assets",        props: { label: "Total Assets Assigned", value: stats.assigned, sub: `of ${totalInventory} in inventory`, icon: ICONS.assets, ring: 240, onClick: () => onNav("Assets") } },
     { id: "employees",     props: { label: "Total Employees", value: stats.employees, sub: "with a machine", icon: ICONS.employees, ring: 168, onClick: () => onNav("Employees") } },
@@ -231,7 +244,11 @@ export default function App() {
   const clearAll = () => { setQuery(""); setDeptFilter("All"); setTypeFilter("All"); };
   const anyFilter = query.trim() || deptFilter !== "All" || typeFilter !== "All";
 
-  const navTo = (p) => {
+  // optional filter carried to a procurement page (e.g. dashboard "Pending PR Approvals" tile).
+  // Cleared on any navigation without an explicit filter, so sidebar nav always lands on "All".
+  const [procFilter, setProcFilter] = useState(null);
+  const navTo = (p, filter) => {
+    setProcFilter(filter ?? null);
     setPage(p);
     const slug = PAGE_TO_SLUG[p];
     if (slug && slug !== location.pathname) navigate(slug);
@@ -385,9 +402,9 @@ export default function App() {
                   page === "Stock Overview" ?
                     <InventoryPage /> :
                   page === "Purchase Requests" ?
-                    <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} /> :
+                    <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} initialFilter={procFilter} /> :
                   page === "Purchase Orders" ?
-                    <PurchaseOrdersPage canManage={canManage} canAdmin={can && can("Admin")} /> :
+                    <PurchaseOrdersPage canManage={canManage} canAdmin={can && can("Admin")} initialFilter={procFilter} /> :
                     <React.Fragment>
                       <div className="page-head">
                         <h1 className="page-title">{page}</h1>
