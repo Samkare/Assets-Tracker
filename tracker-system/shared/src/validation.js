@@ -94,14 +94,24 @@ export const purchaseRequestStatusSchema = z.object({
 // A PO is generated from an APPROVED PR (prId). po_number, po_date, department,
 // category, and default status are set server-side (dept/category snapshot from the PR),
 // so they are intentionally absent here.
+// A single invoice line item. amount (= quantity*rate), CGST/SGST and the totals are DERIVED
+// (computed in the service/UI), so they are intentionally not part of the input.
+export const purchaseOrderItemSchema = z.object({
+  description: z.string().trim().min(1, "Item description required").max(300),
+  quantity:    z.number().positive("Quantity must be greater than 0").max(1_000_000),
+  rate:        z.number().nonnegative("Rate cannot be negative").max(1_000_000_000),
+  taxRate:     z.number().min(0, "Tax % cannot be negative").max(100, "Tax % looks too high").default(18)
+});
+
 export const purchaseOrderInputSchema = z.object({
   prId:            z.number().int().positive(),                       // the approved PR to convert
   vendor:          z.string().trim().min(1, "Vendor is required").max(120),
   supplierId:      z.number().int().positive().nullable().optional(), // set when chosen from the Suppliers list
-  finalAmount:     z.number().nonnegative("Amount cannot be negative").max(1_000_000_000).nullable().optional(),
   billingAddress:  z.string().trim().max(500).nullable().optional(),
   shippingAddress: z.string().trim().max(500).nullable().optional(),
-  terms:           z.string().trim().max(2000).nullable().optional()
+  terms:           z.string().trim().max(2000).nullable().optional(),
+  // grand total is now computed from these line items (finalAmount is no longer client input)
+  items:           z.array(purchaseOrderItemSchema).min(1, "Add at least one line item").max(100)
 });
 
 // Edits (while Draft) reuse the rules but can't move the PO to a different PR.
