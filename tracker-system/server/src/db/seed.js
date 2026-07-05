@@ -23,8 +23,32 @@ const SEED_USERS = [
 ];
 const SEED_USER_PASSWORD = "Welcome!2026"; // shared temp password, must_reset = 1
 
+// Sample IT vendors so the PO vendor picker + inventory supplier list aren't empty on first run.
+const SEED_SUPPLIERS = [
+  { name: "Dell India Pvt Ltd",   contact: "Corporate Sales",  email: "sales@dell.co.in",        phone: "1800-425-8045", leadTimeDays: 7,  notes: "Laptops, desktops, docks, monitors" },
+  { name: "HP Enterprise India",  contact: "Enterprise Desk",  email: "enterprise@hpe.com",      phone: "1800-114-772",  leadTimeDays: 10, notes: "Servers, printers, networking" },
+  { name: "Lenovo India",         contact: "Business Sales",   email: "b2b@lenovo.com",          phone: "1800-419-9999", leadTimeDays: 8,  notes: "ThinkPad laptops, workstations" },
+  { name: "Redington India Ltd",  contact: "Distribution",     email: "corp@redington.co.in",    phone: "044-4224-3353", leadTimeDays: 5,  notes: "IT distributor — peripherals & accessories" },
+  { name: "Rashi Peripherals",    contact: "Channel Sales",    email: "sales@rptechindia.com",   phone: "022-6140-9000", leadTimeDays: 6,  notes: "Components, peripherals, storage" },
+  { name: "Amazon Business",      contact: "Business Account", email: "business@amazon.in",      phone: null,            leadTimeDays: 3,  notes: "General procurement & consumables" }
+];
+
 function seedDepartments() {
   for (const name of DEPARTMENTS) getOrCreateDept(name);
+}
+
+// Idempotent: insert each sample supplier only if a supplier with that name doesn't exist.
+function seedSuppliers() {
+  const exists = db.prepare("SELECT 1 FROM suppliers WHERE name = ?");
+  const ins = db.prepare(`INSERT INTO suppliers (name, contact, email, phone, lead_time_days, notes)
+    VALUES (@name,@contact,@email,@phone,@lead,@notes)`);
+  let n = 0;
+  for (const s of SEED_SUPPLIERS) {
+    if (exists.get(s.name)) continue;
+    ins.run({ name: s.name, contact: s.contact ?? null, email: s.email ?? null, phone: s.phone ?? null, lead: s.leadTimeDays ?? null, notes: s.notes ?? null });
+    n++;
+  }
+  if (n) console.log(`[seed] suppliers: ${n} added`);
 }
 
 function seedUsers() {
@@ -92,6 +116,7 @@ export function seed() {
   const tx = db.transaction(() => {
     seedDepartments();
     seedUsers();
+    seedSuppliers();
     seedAssets();
   });
   tx();
