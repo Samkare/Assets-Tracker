@@ -270,6 +270,27 @@ export function useNotifications(enabled = true) {
   return useQuery({ queryKey: ["notifications"], queryFn: () => api.get("/notifications"), enabled, refetchInterval: 60_000 });
 }
 
+// === Purchase Requests (PR module) ===
+export function usePurchaseRequests(params = {}, enabled = true) {
+  return useQuery({ queryKey: ["purchase-requests", params], queryFn: () => api.get(`/purchase-requests${qs(params)}`), enabled });
+}
+function usePRMutation(fn, opts) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (...a) => {
+      qc.invalidateQueries({ queryKey: ["purchase-requests"] });
+      qc.invalidateQueries({ queryKey: ["audit"] });
+      opts?.onSuccess?.(...a);
+    },
+    onError: opts?.onError
+  });
+}
+export const useCreatePurchaseRequest = (o) => usePRMutation((b) => api.post("/purchase-requests", b), o);
+export const useUpdatePurchaseRequest = (o) => usePRMutation(({ id, input }) => api.put(`/purchase-requests/${id}`, input), o);
+export const useSetPRStatus           = (o) => usePRMutation(({ id, status }) => api.patch(`/purchase-requests/${id}/status`, { status }), o);
+export const useDeletePurchaseRequest = (o) => usePRMutation((id) => api.del(`/purchase-requests/${id}`), o);
+
 // === F2 User preferences ===
 export function usePref(key, enabled = true) {
   return useQuery({ queryKey: ["pref", key], queryFn: () => api.get(`/prefs/${key}`).then((r) => r.value), enabled });

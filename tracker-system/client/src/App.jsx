@@ -30,6 +30,7 @@ const AlertsPage = lazy(() => import("./pages-alerts.jsx").then((m) => ({ defaul
 const ConsumablesPage = lazy(() => import("./pages-consumables.jsx").then((m) => ({ default: m.ConsumablesPage })));
 const TrendsCharts = lazy(() => import("./pages-trends.jsx").then((m) => ({ default: m.TrendsCharts })));
 const InventoryPage = lazy(() => import("./pages-inventory.jsx").then((m) => ({ default: m.InventoryPage })));
+const PurchaseRequestsPage = lazy(() => import("./pages-purchase-requests.jsx").then((m) => ({ default: m.PurchaseRequestsPage })));
 import {
   TweaksPanel, TweakSection, TweakColor, TweakToggle, useTweaks
 } from "./tweaks-panel.jsx";
@@ -98,6 +99,7 @@ export default function App() {
     "Dashboard": "/", "Employees": "/employees", "Assets": "/assets", "Departments": "/departments",
     "Stock Overview": "/stock-overview", "Stock Operations": "/stock-operations",
     "Alerts": "/alerts", "Repairs": "/repairs", "Software": "/software",
+    "Purchase Requests": "/purchase-requests",
     "Reports": "/reports", "Audit Log": "/audit-log", "Users": "/users"
   };
   const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_TO_SLUG).map(([k, v]) => [v, k]));
@@ -380,6 +382,8 @@ export default function App() {
                     <ConsumablesPage canManage={canManage} /> :
                   page === "Stock Overview" ?
                     <InventoryPage /> :
+                  page === "Purchase Requests" ?
+                    <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} /> :
                     <React.Fragment>
                       <div className="page-head">
                         <h1 className="page-title">{page}</h1>
