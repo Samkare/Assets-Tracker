@@ -110,6 +110,7 @@ export const purchaseOrderInputSchema = z.object({
   billingAddress:  z.string().trim().max(500).nullable().optional(),
   shippingAddress: z.string().trim().max(500).nullable().optional(),
   terms:           z.string().trim().max(2000).nullable().optional(),
+  interState:      z.boolean().default(false),  // true → IGST (full rate); false → CGST+SGST split
   // grand total is now computed from these line items (finalAmount is no longer client input)
   items:           z.array(purchaseOrderItemSchema).min(1, "Add at least one line item").max(100)
 });
