@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Icon, ICONS, DeptBadge, Field } from "./components.jsx";
 import {
-  usePurchaseOrders, usePurchaseOrder, useGeneratePO, useSetPOStatus,
-  useUploadPOAttachment, useDeletePOAttachment, useSuppliers
+  usePurchaseOrders, usePurchaseOrder, useGeneratePO, useUpdatePO, useSetPOStatus,
+  useUploadPOAttachment, useDeletePOAttachment, useSuppliers, usePurchaseRequests
 } from "./api/hooks.js";
 import { api } from "./api/client.js";
 import { SkeletonTable } from "./Skeleton.jsx";
@@ -278,7 +278,7 @@ function printPO(po) {
 }
 
 /* ---------- detail / review modal ---------- */
-function PODetailModal({ po: summary, canAdmin, canManage, onClose }) {
+function PODetailModal({ po: summary, canAdmin, canManage, onEdit, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const { data: detail } = usePurchaseOrder(summary.id, true);
@@ -382,6 +382,11 @@ function PODetailModal({ po: summary, canAdmin, canManage, onClose }) {
         {loaded ? <AttachmentsPanel po={po} canManage={canManage} /> : null}
 
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
+          {canManage && po.status === "Draft" && loaded ? (
+            <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: "auto" }} onClick={() => onEdit(po)}>
+              <Icon d={ICONS.edit} size={13} /> Edit
+            </button>
+          ) : null}
           {statusActions || <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>}
         </div>
       </div>
@@ -389,79 +394,117 @@ function PODetailModal({ po: summary, canAdmin, canManage, onClose }) {
   );
 }
 
-/* ---------- standalone PO creation (no PR) ---------- */
-function StandalonePOForm({ onClose }) {
+/* ---------- create (standalone or PR-linked) OR edit a Draft PO ---------- */
+function POForm({ initial, onClose }) {
+  const editing = !!initial;
   const { showToast } = useToast();
   const { data: suppliers = [] } = useSuppliers();
-  const [supplierId, setSupplierId] = useState("");
-  const [department, setDepartment] = useState("");
-  const [category, setCategory] = useState("");
-  const [interState, setInterState] = useState(false);
-  const [billingAddress, setBilling] = useState(COMPANY_DEFAULTS.billingAddress);
-  const [shippingAddress, setShipping] = useState(COMPANY_DEFAULTS.shippingAddress);
-  const [terms, setTerms] = useState("");
-  const [items, setItems] = useState([{ description: "", quantity: 1, rate: 0, taxRate: 18 }]);
-  const vendor = suppliers.find((s) => String(s.id) === String(supplierId));
-  const vendorGst = vendor && (vendor.gstNumber ?? vendor.gst_number);
-  const gen = useGeneratePO({
-    onSuccess: (po) => { showToast(`${po.poNumber} created`, "success"); onClose(); },
-    onError: (e) => showToast(e.message, "error")
-  });
+  // create mode only: Approved PRs that don't already have an active PO (to optionally link)
+  const { data: approvedPRs = [] } = usePurchaseRequests({ status: "Approved" }, !editing);
+  const { data: allPOs = [] } = usePurchaseOrders({}, !editing);
+  const activePrIds = new Set(allPOs.filter((p) => p.status !== "Cancelled" && p.prId != null).map((p) => p.prId));
+  const availablePRs = approvedPRs.filter((pr) => !activePrIds.has(pr.id));
+
+  const [prId, setPrId] = useState(initial?.prId ? String(initial.prId) : "");
+  const [vendor, setVendor] = useState(initial?.vendor || "");
+  const [department, setDepartment] = useState(initial?.department || "");
+  const [category, setCategory] = useState(initial?.category || "");
+  const [interState, setInterState] = useState(!!initial?.interState);
+  const [billingAddress, setBilling] = useState(editing ? (initial.billingAddress || "") : COMPANY_DEFAULTS.billingAddress);
+  const [shippingAddress, setShipping] = useState(editing ? (initial.shippingAddress || "") : COMPANY_DEFAULTS.shippingAddress);
+  const [terms, setTerms] = useState(initial?.terms || "");
+  const [items, setItems] = useState(
+    initial?.items?.length
+      ? initial.items.map((it) => ({ description: it.description, quantity: it.quantity, rate: it.rate, taxRate: it.taxRate }))
+      : [{ description: "", quantity: 1, rate: 0, taxRate: 18 }]
+  );
+
+  const matched = suppliers.find((s) => s.name.trim().toLowerCase() === vendor.trim().toLowerCase());
+  const showAddr = matched ? matched.address : (editing ? initial.vendorAddress : null);
+  const showGst = matched ? (matched.gstNumber ?? matched.gst_number) : (editing ? initial.vendorGst : null);
+  // dept/category come from the PR when one is linked — lock them then
+  const deptLocked = editing ? !!initial.prId : !!prId;
+
+  const create = useGeneratePO({ onSuccess: (po) => { showToast(`${po.poNumber} created`, "success"); onClose(); }, onError: (e) => showToast(e.message, "error") });
+  const update = useUpdatePO({ onSuccess: (po) => { showToast(`${po.poNumber} updated`, "success"); onClose(); }, onError: (e) => showToast(e.message, "error") });
+  const busy = create.isPending || update.isPending;
+
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const onPickPR = (id) => {
+    setPrId(id);
+    const pr = availablePRs.find((p) => String(p.id) === id);
+    if (pr) {
+      setDepartment(pr.department); setCategory(pr.category);
+      if (!vendor.trim()) { const fv = (pr.suggestedVendors || "").split(",")[0].trim(); if (fv) setVendor(fv); }
+    }
+  };
+
   const cleanItems = items
     .map((it) => ({ description: it.description.trim(), quantity: Number(it.quantity) || 0, rate: Number(it.rate) || 0, taxRate: Number(it.taxRate) || 0 }))
     .filter((it) => it.description && it.quantity > 0);
   const totals = computeTotals(cleanItems, interState);
-  const valid = vendor && department && category && cleanItems.length > 0;
+  const valid = vendor.trim() && department && category && cleanItems.length > 0;
 
   const submit = (e) => {
     e.preventDefault();
     if (!valid) return;
-    gen.mutate({
-      vendor: vendor.name, supplierId: vendor.id, department, category, interState,
+    const payload = {
+      vendor: vendor.trim(), supplierId: matched ? matched.id : null,
+      department, category, interState,
       billingAddress: billingAddress.trim() || null, shippingAddress: shippingAddress.trim() || null,
       terms: terms.trim() || null, items: cleanItems
-    });
+    };
+    if (editing) update.mutate({ id: initial.id, input: payload });
+    else create.mutate({ ...payload, prId: prId ? Number(prId) : null });
   };
 
   return (
-    <div style={modalBackdrop} onClick={onClose} role="dialog" aria-modal="true" aria-label="Create purchase order">
+    <div style={modalBackdrop} onClick={onClose} role="dialog" aria-modal="true" aria-label={editing ? "Edit purchase order" : "Create purchase order"}>
       <form className="table-card" style={{ maxWidth: 780, width: "100%", padding: "var(--sp-20)", maxHeight: "92vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} onSubmit={submit}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <strong>Create Purchase Order</strong>
+          <strong>{editing ? "Edit Purchase Order" : "Create Purchase Order"}</strong>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Cancel"><Icon d={ICONS.close} size={15} /></button>
         </div>
-        <p className="page-caption" style={{ marginTop: 2, marginBottom: "var(--sp-14)" }}>Standalone — not linked to a purchase request</p>
+        <p className="page-caption" style={{ marginTop: 2, marginBottom: "var(--sp-14)" }}>
+          {editing ? `Editing ${initial.poNumber} (Draft)` : (prId ? "Linked to a purchase request" : "Standalone — link a PR below if you want")}
+        </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--sp-12)" }}>
+          {!editing ? (
+            <label className="pr-field" style={{ gridColumn: "1 / -1" }}>
+              <span className="field-label">Link to Purchase Request (optional)</span>
+              <select className="input" value={prId} onChange={(e) => onPickPR(e.target.value)}>
+                <option value="">None — standalone PO</option>
+                {availablePRs.map((pr) => <option key={pr.id} value={pr.id}>{pr.prNumber} · {pr.department} / {pr.category}</option>)}
+              </select>
+            </label>
+          ) : null}
           <label className="pr-field" style={{ gridColumn: "1 / -1" }}>
             <span className="field-label">Vendor *</span>
-            <select className="input" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} required>
-              <option value="">Select a vendor…</option>
-              {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </select>
-            {vendor ? (
+            <input className="input" list="poform-suppliers" value={vendor} onChange={(e) => setVendor(e.target.value)} placeholder="Pick a vendor or type a name" required />
+            <datalist id="poform-suppliers">{suppliers.map((s) => <option key={s.id} value={s.name} />)}</datalist>
+            {(showAddr || showGst) ? (
               <div className="cell-muted" style={{ marginTop: 6, fontSize: "0.85em", lineHeight: 1.5 }}>
-                <div>Address: {vendor.address || "—"}</div>
-                <div>GSTIN: <span className="mono">{vendorGst || "—"}</span></div>
+                <div>Address: {showAddr || "—"}</div>
+                <div>GSTIN: <span className="mono">{showGst || "—"}</span></div>
               </div>
             ) : null}
           </label>
           <label className="pr-field">
             <span className="field-label">Department *</span>
-            <select className="input" value={department} onChange={(e) => setDepartment(e.target.value)} required>
+            <select className="input" value={department} onChange={(e) => setDepartment(e.target.value)} disabled={deptLocked} required>
               <option value="">Select…</option>
               {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
           <label className="pr-field">
             <span className="field-label">Category *</span>
-            <select className="input" value={category} onChange={(e) => setCategory(e.target.value)} required>
+            <select className="input" value={category} onChange={(e) => setCategory(e.target.value)} disabled={deptLocked} required>
               <option value="">Select…</option>
               {PR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -493,7 +536,7 @@ function StandalonePOForm({ onClose }) {
 
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-14)" }}>
           <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn btn-primary btn-sm" disabled={!valid || gen.isPending}>{gen.isPending ? "Creating…" : "Create PO"}</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={!valid || busy}>{busy ? "Saving…" : editing ? "Save changes" : "Create PO"}</button>
         </div>
       </form>
     </div>
@@ -504,6 +547,7 @@ function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
   const [filter, setFilter] = useState(initialFilter || "All");
   const [selected, setSelected] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(null); // full PO detail being edited
   // "Open" = Draft + Sent to Vendor (no single server status) — fetch all, filter client-side.
   const { data: allRows = [], isLoading } = usePurchaseOrders(filter === "All" || filter === "Open" ? {} : { status: filter });
   const rows = filter === "Open" ? allRows.filter((p) => p.status === "Draft" || p.status === "Sent to Vendor") : allRows;
@@ -574,8 +618,10 @@ function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
         </div>
       )}
 
-      {selected ? <PODetailModal po={selected} canAdmin={canAdmin} canManage={canManage} onClose={() => setSelected(null)} /> : null}
-      {creating ? <StandalonePOForm onClose={() => setCreating(false)} /> : null}
+      {selected ? <PODetailModal po={selected} canAdmin={canAdmin} canManage={canManage}
+        onEdit={(po) => { setSelected(null); setEditing(po); }} onClose={() => setSelected(null)} /> : null}
+      {creating ? <POForm onClose={() => setCreating(false)} /> : null}
+      {editing ? <POForm initial={editing} onClose={() => setEditing(null)} /> : null}
     </React.Fragment>
   );
 }

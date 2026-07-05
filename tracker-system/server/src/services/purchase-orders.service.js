@@ -167,6 +167,9 @@ export function updatePurchaseOrder(id, patch, actor) {
       `UPDATE purchase_orders SET
          vendor           = COALESCE(@vendor, vendor),
          supplier_id      = COALESCE(@supplierId, supplier_id),
+         -- dept/category are editable only on standalone POs; PR-linked keep their PR snapshot
+         department       = CASE WHEN pr_id IS NULL THEN COALESCE(@department, department) ELSE department END,
+         category         = CASE WHEN pr_id IS NULL THEN COALESCE(@category, category) ELSE category END,
          billing_address  = COALESCE(@billingAddress, billing_address),
          shipping_address = COALESCE(@shippingAddress, shipping_address),
          terms            = COALESCE(@terms, terms),
@@ -176,6 +179,8 @@ export function updatePurchaseOrder(id, patch, actor) {
       id,
       vendor: patch.vendor ?? null,
       supplierId: patch.supplierId ?? null,
+      department: patch.department ?? null,
+      category: patch.category ?? null,
       billingAddress: patch.billingAddress ?? null,
       shippingAddress: patch.shippingAddress ?? null,
       terms: patch.terms ?? null,
