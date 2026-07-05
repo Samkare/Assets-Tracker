@@ -67,7 +67,8 @@ export const ICONS = {
   pin: <><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></>,
   mail: <><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m3.5 7 8.5 6 8.5-6"></path></>,
   diamond: <><path d="M5 3h14l3 6-10 12L2 9z"></path><path d="M2 9h20M9 3 7 9l5 12 5-12-2-6M5 9l4 0M15 9l4 0"></path></>,
-  edit: <><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></>
+  edit: <><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></>,
+  vendor: <><path d="M3 9l1.5-5h15L21 9"></path><path d="M4.5 9v10a1 1 0 0 0 1 1h13a1 1 0 0 0 1-1V9"></path><path d="M9 20v-6h6v6"></path><path d="M3 9h18"></path></>
 };
 export function typeIcon(t) { return ICONS[(t || "").toLowerCase()] || ICONS.desktop; }
 
@@ -252,7 +253,8 @@ export function Sidebar({ active, onNavigate, open, onClose, counts = {}, user, 
   },
   { label: "Procurement", items: [
     { key: "Purchase Requests", icon: ICONS.template },
-    { key: "Purchase Orders", icon: ICONS.mail }]
+    { key: "Purchase Orders", icon: ICONS.mail },
+    { key: "Vendor Management", icon: ICONS.vendor }]
   },
   { label: "Insights", items: [
     { key: "Reports", icon: ICONS.reports }]

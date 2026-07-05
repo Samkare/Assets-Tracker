@@ -32,6 +32,7 @@ const TrendsCharts = lazy(() => import("./pages-trends.jsx").then((m) => ({ defa
 const InventoryPage = lazy(() => import("./pages-inventory.jsx").then((m) => ({ default: m.InventoryPage })));
 const PurchaseRequestsPage = lazy(() => import("./pages-purchase-requests.jsx").then((m) => ({ default: m.PurchaseRequestsPage })));
 const PurchaseOrdersPage = lazy(() => import("./pages-purchase-orders.jsx").then((m) => ({ default: m.PurchaseOrdersPage })));
+const VendorsPage = lazy(() => import("./pages-vendors.jsx").then((m) => ({ default: m.VendorsPage })));
 import {
   TweaksPanel, TweakSection, TweakColor, TweakToggle, useTweaks
 } from "./tweaks-panel.jsx";
@@ -115,6 +116,7 @@ export default function App() {
     "Alerts": "/alerts", "Repairs": "/repairs", "Software": "/software",
     "Purchase Requests": "/purchase-requests",
     "Purchase Orders": "/purchase-orders",
+    "Vendor Management": "/vendors",
     "Reports": "/reports", "Audit Log": "/audit-log", "Users": "/users"
   };
   const SLUG_TO_PAGE = Object.fromEntries(Object.entries(PAGE_TO_SLUG).map(([k, v]) => [v, k]));
@@ -405,6 +407,8 @@ export default function App() {
                     <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} initialFilter={procFilter} /> :
                   page === "Purchase Orders" ?
                     <PurchaseOrdersPage canManage={canManage} canAdmin={can && can("Admin")} initialFilter={procFilter} /> :
+                  page === "Vendor Management" ?
+                    <VendorsPage canManage={canManage} canAdmin={can && can("Admin")} /> :
                     <React.Fragment>
                       <div className="page-head">
                         <h1 className="page-title">{page}</h1>

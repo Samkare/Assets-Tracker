@@ -9,7 +9,7 @@ import { api } from "./api/client.js";
 import { SkeletonTable } from "./Skeleton.jsx";
 import { useToast } from "./toasts.jsx";
 import { useConfirm } from "./confirm.jsx";
-import { COMPANY_DEFAULTS } from "@its/shared/constants";
+import { COMPANY_DEFAULTS, DEPARTMENTS, PR_CATEGORIES } from "@its/shared/constants";
 
 const PO_STATUS_TONE = {
   "Draft": "var(--text-3)",
@@ -256,7 +256,8 @@ function printPO(po) {
       <div class="doc"><h2>PURCHASE ORDER</h2><div class="meta">${esc(po.poNumber)}<br>Date: ${fmtDate(po.createdAt)}<br>Status: ${esc(po.status)}</div></div>
     </div>
     <div class="grid">
-      <div><div class="lbl">Vendor</div>${esc(po.vendor)}<div class="lbl" style="margin-top:10px">From request</div>${esc(po.prNumber)} · ${esc(po.department)} / ${esc(po.category)}</div>
+      <div><div class="lbl">Vendor</div>${esc(po.vendor)}${po.vendorGst ? `<br><span style="color:#64748b">GSTIN: ${esc(po.vendorGst)}</span>` : ""}${po.vendorAddress ? `<br><span style="color:#64748b">${esc(po.vendorAddress)}</span>` : ""}
+        <div class="lbl" style="margin-top:10px">Reference</div>${po.prNumber ? esc(po.prNumber) + " · " : "Standalone · "}${esc(po.department) || "—"} / ${esc(po.category) || "—"}</div>
       <div><div class="lbl">Billing address</div>${esc(po.billingAddress) || "—"}<div class="lbl" style="margin-top:10px">Shipping address</div>${esc(po.shippingAddress) || "—"}</div>
     </div>
     <table><thead><tr><th>#</th><th>Item details</th><th class="r">Qty</th><th class="r">Rate</th><th class="r">Tax %</th><th class="r">Amount</th></tr></thead>
@@ -330,12 +331,14 @@ function PODetailModal({ po: summary, canAdmin, canManage, onClose }) {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "var(--sp-12)" }}>
-          <Field label="From PR">{po.prNumber}</Field>
+          <Field label="From PR">{po.prNumber || "Standalone"}</Field>
           <Field label="Vendor">{po.vendor}</Field>
+          <Field label="Vendor GSTIN">{po.vendorGst ? <span className="mono">{po.vendorGst}</span> : "—"}</Field>
           <Field label="Department">{po.department ? <DeptBadge dept={po.department} /> : "—"}</Field>
-          <Field label="Category">{po.category}</Field>
+          <Field label="Category">{po.category || "—"}</Field>
           <Field label="Created">{fmtDateTime(po.createdAt)}</Field>
           <Field label="Tax">{po.interState ? "Inter-state (IGST)" : "Intra-state (CGST+SGST)"}</Field>
+          <Field label="Vendor address">{po.vendorAddress || "—"}</Field>
           <Field label="Billing address">{po.billingAddress || "—"}</Field>
           <Field label="Shipping address">{po.shippingAddress || "—"}</Field>
         </div>
@@ -386,9 +389,121 @@ function PODetailModal({ po: summary, canAdmin, canManage, onClose }) {
   );
 }
 
+/* ---------- standalone PO creation (no PR) ---------- */
+function StandalonePOForm({ onClose }) {
+  const { showToast } = useToast();
+  const { data: suppliers = [] } = useSuppliers();
+  const [supplierId, setSupplierId] = useState("");
+  const [department, setDepartment] = useState("");
+  const [category, setCategory] = useState("");
+  const [interState, setInterState] = useState(false);
+  const [billingAddress, setBilling] = useState(COMPANY_DEFAULTS.billingAddress);
+  const [shippingAddress, setShipping] = useState(COMPANY_DEFAULTS.shippingAddress);
+  const [terms, setTerms] = useState("");
+  const [items, setItems] = useState([{ description: "", quantity: 1, rate: 0, taxRate: 18 }]);
+  const vendor = suppliers.find((s) => String(s.id) === String(supplierId));
+  const vendorGst = vendor && (vendor.gstNumber ?? vendor.gst_number);
+  const gen = useGeneratePO({
+    onSuccess: (po) => { showToast(`${po.poNumber} created`, "success"); onClose(); },
+    onError: (e) => showToast(e.message, "error")
+  });
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const cleanItems = items
+    .map((it) => ({ description: it.description.trim(), quantity: Number(it.quantity) || 0, rate: Number(it.rate) || 0, taxRate: Number(it.taxRate) || 0 }))
+    .filter((it) => it.description && it.quantity > 0);
+  const totals = computeTotals(cleanItems, interState);
+  const valid = vendor && department && category && cleanItems.length > 0;
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!valid) return;
+    gen.mutate({
+      vendor: vendor.name, supplierId: vendor.id, department, category, interState,
+      billingAddress: billingAddress.trim() || null, shippingAddress: shippingAddress.trim() || null,
+      terms: terms.trim() || null, items: cleanItems
+    });
+  };
+
+  return (
+    <div style={modalBackdrop} onClick={onClose} role="dialog" aria-modal="true" aria-label="Create purchase order">
+      <form className="table-card" style={{ maxWidth: 780, width: "100%", padding: "var(--sp-20)", maxHeight: "92vh", overflowY: "auto" }} onClick={(e) => e.stopPropagation()} onSubmit={submit}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <strong>Create Purchase Order</strong>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Cancel"><Icon d={ICONS.close} size={15} /></button>
+        </div>
+        <p className="page-caption" style={{ marginTop: 2, marginBottom: "var(--sp-14)" }}>Standalone — not linked to a purchase request</p>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--sp-12)" }}>
+          <label className="pr-field" style={{ gridColumn: "1 / -1" }}>
+            <span className="field-label">Vendor *</span>
+            <select className="input" value={supplierId} onChange={(e) => setSupplierId(e.target.value)} required>
+              <option value="">Select a vendor…</option>
+              {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+            {vendor ? (
+              <div className="cell-muted" style={{ marginTop: 6, fontSize: "0.85em", lineHeight: 1.5 }}>
+                <div>Address: {vendor.address || "—"}</div>
+                <div>GSTIN: <span className="mono">{vendorGst || "—"}</span></div>
+              </div>
+            ) : null}
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Department *</span>
+            <select className="input" value={department} onChange={(e) => setDepartment(e.target.value)} required>
+              <option value="">Select…</option>
+              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Category *</span>
+            <select className="input" value={category} onChange={(e) => setCategory(e.target.value)} required>
+              <option value="">Select…</option>
+              {PR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Billing address</span>
+            <input className="input" value={billingAddress} onChange={(e) => setBilling(e.target.value)} />
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Shipping address</span>
+            <input className="input" value={shippingAddress} onChange={(e) => setShipping(e.target.value)} />
+          </label>
+          <label className="pr-field" style={{ alignSelf: "end" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+              <input type="checkbox" checked={interState} onChange={(e) => setInterState(e.target.checked)} />
+              <span>Inter-state (IGST)</span>
+            </span>
+          </label>
+        </div>
+
+        <div className="field-label" style={{ marginTop: "var(--sp-16)", marginBottom: "var(--sp-6)" }}>Items</div>
+        <ItemsEditor items={items} setItems={setItems} />
+        <TotalsPanel totals={totals} />
+
+        <label className="pr-field" style={{ display: "block", marginTop: "var(--sp-14)" }}>
+          <span className="field-label">Terms &amp; conditions</span>
+          <textarea className="input" rows={2} placeholder="Delivery / payment terms" value={terms} onChange={(e) => setTerms(e.target.value)} />
+        </label>
+
+        <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-14)" }}>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={!valid || gen.isPending}>{gen.isPending ? "Creating…" : "Create PO"}</button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
   const [filter, setFilter] = useState(initialFilter || "All");
   const [selected, setSelected] = useState(null);
+  const [creating, setCreating] = useState(false);
   // "Open" = Draft + Sent to Vendor (no single server status) — fetch all, filter client-side.
   const { data: allRows = [], isLoading } = usePurchaseOrders(filter === "All" || filter === "Open" ? {} : { status: filter });
   const rows = filter === "Open" ? allRows.filter((p) => p.status === "Draft" || p.status === "Sent to Vendor") : allRows;
@@ -405,6 +520,11 @@ function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
           <button type="button" key={o} className={"audit-chip" + (filter === o ? " audit-chip-on" : "")} onClick={() => setFilter(o)}>{o}</button>
         ))}
         <span className="audit-count">{rows.length} {rows.length === 1 ? "order" : "orders"}</span>
+        {canManage ? (
+          <button type="button" className="table-add-btn" style={{ marginLeft: "auto" }} onClick={() => setCreating(true)}>
+            <Icon d={ICONS.plus} size={13} /> Create Purchase Order
+          </button>
+        ) : null}
       </div>
 
       {isLoading ? (
@@ -414,7 +534,7 @@ function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
           <div className="empty-state">
             <div className="empty-icon"><Icon d={ICONS.mail} size={20} /></div>
             <div className="empty-title">No purchase orders{filter !== "All" ? ` (${filter})` : ""}</div>
-            <div className="empty-sub">Open an <strong>Approved</strong> request in Purchase Requests and click “Generate PO”.</div>
+            <div className="empty-sub">Click <strong>Create Purchase Order</strong> above, or open an <strong>Approved</strong> request and “Generate PO”.</div>
           </div>
         </div>
       ) : (
@@ -436,7 +556,7 @@ function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
                 {rows.map((po) => (
                   <tr key={po.id} onClick={() => setSelected(po)} style={{ cursor: "pointer" }} title="Open to review">
                     <td><span className="mono cell-tag">{po.poNumber}</span></td>
-                    <td><span className="mono cell-muted">{po.prNumber}</span></td>
+                    <td>{po.prNumber ? <span className="mono cell-muted">{po.prNumber}</span> : <span className="cell-muted">standalone</span>}</td>
                     <td>{po.vendor}</td>
                     <td>{po.department ? <DeptBadge dept={po.department} /> : <span className="cell-muted">—</span>}</td>
                     <td>{po.finalAmount != null ? <span className="mono">{fmtMoney(po.finalAmount)}</span> : <span className="cell-muted">—</span>}</td>
@@ -455,6 +575,7 @@ function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
       )}
 
       {selected ? <PODetailModal po={selected} canAdmin={canAdmin} canManage={canManage} onClose={() => setSelected(null)} /> : null}
+      {creating ? <StandalonePOForm onClose={() => setCreating(false)} /> : null}
     </React.Fragment>
   );
 }
