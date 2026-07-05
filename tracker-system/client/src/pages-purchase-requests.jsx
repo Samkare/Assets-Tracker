@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { Icon, ICONS, DeptBadge, Field } from "./components.jsx";
 import {
-  usePurchaseRequests, useCreatePurchaseRequest, useSetPRStatus, useDeletePurchaseRequest
+  usePurchaseRequests, useCreatePurchaseRequest, useSetPRStatus, useDeletePurchaseRequest, usePurchaseOrders
 } from "./api/hooks.js";
 import { SkeletonTable } from "./Skeleton.jsx";
 import { useToast } from "./toasts.jsx";
 import { useConfirm } from "./confirm.jsx";
 import { DEPARTMENTS, PR_CATEGORIES } from "@its/shared/constants";
+import { POGenerateForm } from "./pages-purchase-orders.jsx";
 
 const STATUS_TONE = {
   Pending:  "var(--warn, #b45309)",
@@ -119,7 +120,7 @@ function NewRequestForm({ onClose }) {
 /* ---------- detail / review modal ---------- */
 // Approvers open this to VERIFY the full request before deciding. Approve/Reject live here
 // (not in the table) so an Admin can't act without seeing the details first.
-function PRDetailModal({ pr, canAdmin, onClose }) {
+function PRDetailModal({ pr, canAdmin, canManage, activePo, onGeneratePO, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const setStatus = useSetPRStatus({
@@ -174,8 +175,8 @@ function PRDetailModal({ pr, canAdmin, onClose }) {
           <div className="field-value" style={{ whiteSpace: "pre-wrap", marginTop: 4 }}>{pr.businessPurpose}</div>
         </div>
 
-        <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
-          {canAdmin && pr.status === "Pending" ? (
+        <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", alignItems: "center", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
+          {pr.status === "Pending" && canAdmin ? (
             <React.Fragment>
               <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
               <button type="button" className="btn btn-primary btn-sm" disabled={busy}
@@ -183,7 +184,20 @@ function PRDetailModal({ pr, canAdmin, onClose }) {
                 {setStatus.isPending ? "Saving…" : "Approve"}
               </button>
             </React.Fragment>
-          ) : canAdmin ? (
+          ) : pr.status === "Approved" ? (
+            activePo ? (
+              <React.Fragment>
+                <span className="cell-muted" style={{ marginRight: "auto" }}>
+                  Linked PO: <span className="mono">{activePo.poNumber}</span> · {activePo.status}
+                </span>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
+              </React.Fragment>
+            ) : canManage ? (
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => onGeneratePO(pr)}>Generate PO</button>
+            ) : (
+              <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
+            )
+          ) : canAdmin && pr.status === "Rejected" ? (
             <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
           ) : (
             <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
@@ -197,8 +211,13 @@ function PRDetailModal({ pr, canAdmin, onClose }) {
 function PurchaseRequestsPage({ canManage, canAdmin }) {
   const [filter, setFilter] = useState("All");
   const [formOpen, setFormOpen] = useState(false);
-  const [selected, setSelected] = useState(null); // PR being reviewed in the modal
+  const [selected, setSelected] = useState(null);       // PR being reviewed in the modal
+  const [generatingFor, setGeneratingFor] = useState(null); // PR we're generating a PO from
   const { data: rows = [], isLoading } = usePurchaseRequests(filter === "All" ? {} : { status: filter });
+  // map each PR to its active (non-cancelled) PO, so the modal shows "Generate PO" vs the linked PO
+  const { data: pos = [] } = usePurchaseOrders();
+  const activePoByPr = {};
+  for (const po of pos) { if (po.status !== "Cancelled" && !activePoByPr[po.prId]) activePoByPr[po.prId] = po; }
 
   return (
     <React.Fragment>
@@ -275,7 +294,13 @@ function PurchaseRequestsPage({ canManage, canAdmin }) {
         </div>
       )}
 
-      {selected ? <PRDetailModal pr={selected} canAdmin={canAdmin} onClose={() => setSelected(null)} /> : null}
+      {selected ? (
+        <PRDetailModal pr={selected} canAdmin={canAdmin} canManage={canManage}
+          activePo={activePoByPr[selected.id] || null}
+          onGeneratePO={(pr) => { setSelected(null); setGeneratingFor(pr); }}
+          onClose={() => setSelected(null)} />
+      ) : null}
+      {generatingFor ? <POGenerateForm pr={generatingFor} onClose={() => setGeneratingFor(null)} /> : null}
     </React.Fragment>
   );
 }
