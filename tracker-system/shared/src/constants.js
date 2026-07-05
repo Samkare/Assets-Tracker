@@ -49,3 +49,16 @@ export const ROLE_RANK = { "Viewer": 1, "IT-Manager": 2, "Admin": 3 };
 export const AUDIT_ACTIONS = ["added", "assigned", "reassigned", "edited", "repair", "removed"];
 
 export const SHARED_PSEUDO = "Day-Shift PC";
+
+// Purchase Request module — single source of truth for the dropdowns.
+// Edit these freely; the Zod enums pick them up automatically (no migration needed for categories).
+export const PR_CATEGORIES = [
+  "Major Procurement",
+  "IT Consumable",
+  "Service Repair",
+  "Software License",
+  "Hardware",
+  "Other"
+];
+
+export const PR_STATUSES = ["Pending", "Approved", "Rejected"];

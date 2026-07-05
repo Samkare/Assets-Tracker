@@ -1,6 +1,6 @@
 // zod schemas — used by API routes (request bodies) and import (per-row validation).
 import { z } from "zod";
-import { ASSET_TYPES, ASSET_STATUSES, ROLES } from "./constants.js";
+import { ASSET_TYPES, ASSET_STATUSES, ROLES, PR_CATEGORIES, PR_STATUSES } from "./constants.js";
 
 const optStr = z.string().trim().max(120).optional().nullable();
 
@@ -67,4 +67,25 @@ export const employeeInputSchema = z.object({
 export const departmentInputSchema = z.object({
   name: z.string().trim().min(1).max(60),
   hue: z.number().int().min(0).max(360).optional()
+});
+
+// ── Purchase Request (PR) module ───────────────────────────────────────────
+// Requestor-submitted fields only. pr_number, created_at, and status are set
+// server-side (status defaults to 'Pending'), so they are intentionally absent here.
+export const purchaseRequestInputSchema = z.object({
+  requestedBy:      z.string().trim().min(1, "Requested by is required").max(80),
+  department:       z.string().trim().min(1, "Department required").max(60),
+  category:         z.enum(PR_CATEGORIES),
+  businessPurpose:  z.string().trim().min(1, "Business purpose is required").max(2000),
+  requiredBy:       z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").nullable().optional(),
+  estimatedCost:    z.number().nonnegative("Cost cannot be negative").max(1_000_000_000).nullable().optional(),
+  suggestedVendors: z.string().trim().max(300).nullable().optional()
+});
+
+// Edits reuse the same rules but every field is optional (PATCH semantics).
+export const purchaseRequestUpdateSchema = purchaseRequestInputSchema.partial();
+
+// Approve / reject — the privileged status transition (separate endpoint, role-gated in Step 2).
+export const purchaseRequestStatusSchema = z.object({
+  status: z.enum(PR_STATUSES)
 });
