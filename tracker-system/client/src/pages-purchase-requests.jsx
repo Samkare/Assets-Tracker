@@ -208,8 +208,8 @@ function PRDetailModal({ pr, canAdmin, canManage, activePo, onGeneratePO, onClos
   );
 }
 
-function PurchaseRequestsPage({ canManage, canAdmin }) {
-  const [filter, setFilter] = useState("All");
+function PurchaseRequestsPage({ canManage, canAdmin, initialFilter }) {
+  const [filter, setFilter] = useState(initialFilter || "All");
   const [formOpen, setFormOpen] = useState(false);
   const [selected, setSelected] = useState(null);       // PR being reviewed in the modal
   const [generatingFor, setGeneratingFor] = useState(null); // PR we're generating a PO from

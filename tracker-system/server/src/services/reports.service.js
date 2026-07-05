@@ -46,6 +46,13 @@ export function summary() {
   const lowStockCount = db.prepare("SELECT COUNT(*) n FROM consumables WHERE qty <= reorder_level").get().n;
   const spares = db.prepare("SELECT COUNT(*) n FROM assets WHERE in_stock = 1").get().n;
 
+  // Procurement signals for the dashboard tiles.
+  const pendingPRs = db.prepare("SELECT COUNT(*) n FROM purchase_requests WHERE status = 'Pending'").get().n;
+  const openPOs = db.prepare("SELECT COUNT(*) n FROM purchase_orders WHERE status IN ('Draft','Sent to Vendor')").get().n;
+  const monthPOSpend = db.prepare(`
+    SELECT COALESCE(SUM(final_amount), 0) n FROM purchase_orders
+    WHERE status != 'Cancelled' AND strftime('%Y-%m', created_at) = strftime('%Y-%m','now')`).get().n;
+
   // Operational signals for the dashboard tiles (each is a "do something" number).
   const slaBreaches = db.prepare(`
     SELECT COUNT(*) n FROM repair_tickets
@@ -71,7 +78,8 @@ export function summary() {
     dual: totals.dual, inRepair: totals.inRepair, employees, depts, coverage,
     byDept, peripheralCounts: periph,
     openRepairs, softwareRenewals, retired, lowStockCount, spares,
-    slaBreaches, overdueReturns, defectiveOpen, utilization, trends
+    slaBreaches, overdueReturns, defectiveOpen, utilization, trends,
+    pendingPRs, openPOs, monthPOSpend
   };
 }
 

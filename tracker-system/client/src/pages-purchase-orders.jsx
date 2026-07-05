@@ -43,7 +43,7 @@ function computeTotals(items, interState) {
     : { subtotal, cgst: round2(totalTax / 2), sgst: round2(totalTax / 2), igst: 0, totalTax, grandTotal, interState: false };
 }
 
-const FILTERS = ["All", "Draft", "Sent to Vendor", "Fulfilled", "Cancelled"];
+const FILTERS = ["All", "Open", "Draft", "Sent to Vendor", "Fulfilled", "Cancelled"];
 const modalBackdrop = { position: "fixed", inset: 0, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 };
 
 function TotalRow({ label, value, strong }) {
@@ -386,10 +386,12 @@ function PODetailModal({ po: summary, canAdmin, canManage, onClose }) {
   );
 }
 
-function PurchaseOrdersPage({ canManage, canAdmin }) {
-  const [filter, setFilter] = useState("All");
+function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
+  const [filter, setFilter] = useState(initialFilter || "All");
   const [selected, setSelected] = useState(null);
-  const { data: rows = [], isLoading } = usePurchaseOrders(filter === "All" ? {} : { status: filter });
+  // "Open" = Draft + Sent to Vendor (no single server status) — fetch all, filter client-side.
+  const { data: allRows = [], isLoading } = usePurchaseOrders(filter === "All" || filter === "Open" ? {} : { status: filter });
+  const rows = filter === "Open" ? allRows.filter((p) => p.status === "Draft" || p.status === "Sent to Vendor") : allRows;
 
   return (
     <React.Fragment>
