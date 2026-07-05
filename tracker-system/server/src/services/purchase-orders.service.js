@@ -5,10 +5,11 @@ import db from "../db/connection.js";
 import { insertAudit } from "../db/repo.js";
 import { HttpError } from "../middleware/error.js";
 
+// LEFT JOIN so standalone POs (pr_id NULL) are included; pr_number is null for them.
 const PO_SELECT = `
   SELECT po.*, pr.pr_number
   FROM purchase_orders po
-  JOIN purchase_requests pr ON pr.id = po.pr_id`;
+  LEFT JOIN purchase_requests pr ON pr.id = po.pr_id`;
 
 const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
@@ -92,18 +93,28 @@ export function firstSuggestedVendor(prId) {
   return first || null;
 }
 
-// Generate a PO from an APPROVED PR. Snapshots dept/category from the PR; grand total is computed
-// from the line items and stored in final_amount. One active (non-cancelled) PO per PR.
+// Create a PO — either from an APPROVED PR (prId set: snapshots dept/category, one-active guard)
+// or STANDALONE (prId null: uses the department/category provided in the form). Grand total is
+// computed from the line items and stored in final_amount.
 export function generatePO(input, actor) {
-  const pr = db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(input.prId);
-  if (!pr) throw new HttpError(404, `PR ${input.prId} not found`);
-  if (pr.status !== "Approved") {
-    throw new HttpError(409, `A PO can only be generated from an Approved PR (PR is ${pr.status})`);
+  let department = input.department ?? null;
+  let category = input.category ?? null;
+  let prNumber = null;
+
+  if (input.prId != null) {
+    const pr = db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(input.prId);
+    if (!pr) throw new HttpError(404, `PR ${input.prId} not found`);
+    if (pr.status !== "Approved") {
+      throw new HttpError(409, `A PO can only be generated from an Approved PR (PR is ${pr.status})`);
+    }
+    const active = db.prepare(
+      "SELECT po_number FROM purchase_orders WHERE pr_id = ? AND status != 'Cancelled'"
+    ).get(input.prId);
+    if (active) throw new HttpError(409, `${pr.pr_number} already has an active PO (${active.po_number})`);
+    department = pr.department;   // snapshot from the PR (authoritative — overrides any client value)
+    category = pr.category;
+    prNumber = pr.pr_number;
   }
-  const active = db.prepare(
-    "SELECT po_number FROM purchase_orders WHERE pr_id = ? AND status != 'Cancelled'"
-  ).get(input.prId);
-  if (active) throw new HttpError(409, `${pr.pr_number} already has an active PO (${active.po_number})`);
 
   const { totals } = computeTotals(input.items, !!input.interState);
   const tx = db.transaction(() => {
@@ -116,11 +127,11 @@ export function generatePO(input, actor) {
           @billingAddress, @shippingAddress, @terms, @actor)`
     ).run({
       poNumber,
-      prId: input.prId,
+      prId: input.prId ?? null,
       vendor: input.vendor,
       supplierId: input.supplierId ?? null,
-      department: pr.department,
-      category: pr.category,
+      department,
+      category,
       finalAmount: totals.grandTotal,
       interState: input.interState ? 1 : 0,
       billingAddress: input.billingAddress ?? null,
@@ -132,8 +143,10 @@ export function generatePO(input, actor) {
     insertItems(poId, input.items);
     insertAudit({
       actor, action: "added", tag: poNumber,
-      subject: input.vendor, dept: pr.department,
-      detail: `PO raised from ${pr.pr_number} — ${input.vendor} (₹${totals.grandTotal})`
+      subject: input.vendor, dept: department,
+      detail: prNumber
+        ? `PO raised from ${prNumber} — ${input.vendor} (₹${totals.grandTotal})`
+        : `Standalone PO raised — ${input.vendor} (₹${totals.grandTotal})`
     });
     return poId;
   });
