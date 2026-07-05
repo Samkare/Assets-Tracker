@@ -104,9 +104,11 @@ export const purchaseOrderItemSchema = z.object({
 });
 
 export const purchaseOrderInputSchema = z.object({
-  prId:            z.number().int().positive(),                       // the approved PR to convert
+  prId:            z.number().int().positive().nullable().optional(), // present = from a PR; absent = standalone
   vendor:          z.string().trim().min(1, "Vendor is required").max(120),
   supplierId:      z.number().int().positive().nullable().optional(), // set when chosen from the Suppliers list
+  department:      z.string().trim().max(60).nullable().optional(),   // standalone sets these; PR-linked snapshots from the PR
+  category:        z.string().trim().max(60).nullable().optional(),
   billingAddress:  z.string().trim().max(500).nullable().optional(),
   shippingAddress: z.string().trim().max(500).nullable().optional(),
   terms:           z.string().trim().max(2000).nullable().optional(),
@@ -121,4 +123,18 @@ export const purchaseOrderUpdateSchema = purchaseOrderInputSchema.partial().omit
 // Draft → Sent to Vendor → Fulfilled / Cancelled — Admin-only transition (role-gated in Step 2).
 export const purchaseOrderStatusSchema = z.object({
   status: z.enum(PO_STATUSES)
+});
+
+// ── Vendor / Supplier management ───────────────────────────────────────────
+// The 5 vendor fields (name, address, mobile=phone, email, GST) plus the legacy
+// inventory fields (contact, lead time, notes) kept optional so existing use still works.
+export const supplierInputSchema = z.object({
+  name:         z.string().trim().min(1, "Vendor name is required").max(120),
+  address:      z.string().trim().max(500).nullable().optional(),
+  phone:        z.string().trim().max(30).nullable().optional(),  // mobile number
+  email:        z.union([z.string().trim().email("Invalid email address").max(254), z.literal("")]).nullable().optional(),
+  gstNumber:    z.union([z.string().trim().regex(/^[0-9A-Za-z]{15}$/, "GSTIN must be 15 characters"), z.literal("")]).nullable().optional(),
+  contact:      z.string().trim().max(120).nullable().optional(),
+  leadTimeDays: z.number().int().min(0).max(365).nullable().optional(),
+  notes:        z.string().trim().max(500).nullable().optional()
 });
