@@ -1,7 +1,7 @@
 import db from "../db/connection.js";
 import { upsertAsset, insertAssetStrict, insertAudit, insertAssignment, rowToAsset } from "../db/repo.js";
 import { getAssetPeripherals, peripheralsByAsset, syncAssetPeripherals, labelForKey } from "./peripherals.service.js";
-import { adjustPeripheralStock } from "./inventory.service.js";
+import { adjustPeripheralStock, issue, returnFromAsset } from "./inventory.service.js";
 import { buildAsset, diffAsset } from "@its/shared/assetLogic";
 import { PERIPHERALS } from "@its/shared/constants";
 import { HttpError } from "../middleware/error.js";
@@ -227,6 +227,9 @@ export function setInStock(id, inStock, actor) {
 export function issueSpare(id, input, actor) {
   const a = getAsset(id);
   if (!a) throw new HttpError(404, `Asset ${id} not found`);
+  // Guard against reissuing an already-assigned spare out from under its current holder —
+  // must be returned to spare stock (in_stock=1) before it can go to someone else.
+  if (!a.inStock) throw new HttpError(409, `Asset ${id} is already assigned to ${a.pseudo} — return it to spare stock first`);
   if (!input?.pseudo?.trim()) throw new HttpError(400, "Employee name required");
   const merged = buildAsset({ ...a, pseudo: input.pseudo, dept: input.dept || a.dept, id });
   const tx = db.transaction(() => {
@@ -252,6 +255,56 @@ export function restoreAsset(id, actor) {
   });
   tx();
   return getAsset(id);
+}
+
+// --- Asset Assignment tab: issue / return stock items to the person holding this machine ---
+
+// Net stock items currently held by this asset (issued − returned), for the tab's list.
+export function listAssignedItems(assetId) {
+  if (!getAsset(assetId)) throw new HttpError(404, `Asset ${assetId} not found`);
+  return db.prepare(`
+    SELECT m.item_id AS itemId, i.name, i.unit,
+           SUM(CASE WHEN m.type='out' THEN m.qty WHEN m.type='return' THEN -m.qty ELSE 0 END) AS held
+    FROM stock_movements m
+    JOIN consumables i ON i.id = m.item_id
+    WHERE m.asset_id = ?
+    GROUP BY m.item_id, i.name, i.unit
+    HAVING held > 0
+    ORDER BY i.name`).all(assetId);
+}
+
+// Plus: assign a live-stock item to the person on this machine. Issues qty (default 1) from the
+// selected consumable, decrementing its stock (qty − 1) inside inventory's atomic transaction —
+// the DB guard rejects the issue if it would drive stock negative. Custody is recorded on the
+// stock_movement (asset_id + employee_name), which is the link between the item and this user.
+export function assignItem(assetId, body, actor) {
+  const a = getAsset(assetId);
+  if (!a) throw new HttpError(404, `Asset ${assetId} not found`);
+  if (a.status === "retired") throw new HttpError(409, `Asset ${assetId} is retired — restore it before assigning items`);
+  const itemId = Number(body?.itemId);
+  if (!itemId) throw new HttpError(400, "itemId (stock item) is required");
+  const qty = body?.qty == null ? 1 : Math.trunc(Number(body.qty));
+  if (!qty || qty <= 0) throw new HttpError(400, "qty must be a positive integer");
+  const employeeName = a.shared ? null : a.pseudo;
+  const item = issue(itemId, { qty, assetId, employeeName, reason: body?.note || `Assigned to ${employeeName || assetId}` }, actor);
+  return { ok: true, asset: getAsset(assetId), item };
+}
+
+// Minus: return an assigned item via the 3-option flow (repair / stock / retire), adjusting the
+// stock pool accordingly. See returnFromAsset() for the per-destination stock semantics.
+export function unassignItem(assetId, body, actor) {
+  const a = getAsset(assetId);
+  if (!a) throw new HttpError(404, `Asset ${assetId} not found`);
+  const itemId = Number(body?.itemId);
+  if (!itemId) throw new HttpError(400, "itemId (stock item) is required");
+  const qty = body?.qty == null ? 1 : Math.trunc(Number(body.qty));
+  if (!qty || qty <= 0) throw new HttpError(400, "qty must be a positive integer");
+  const destination = body?.destination || "stock";
+  if (!["repair", "stock", "retire"].includes(destination))
+    throw new HttpError(400, "destination must be one of: repair, stock, retire");
+  const employeeName = a.shared ? null : a.pseudo;
+  const item = returnFromAsset(itemId, { qty, assetId, employeeName, destination, reason: body?.reason }, actor);
+  return { ok: true, asset: getAsset(assetId), destination, item };
 }
 
 // Merged timeline: audit events + custody changes + repair tickets, newest first.

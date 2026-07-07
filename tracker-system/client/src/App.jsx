@@ -2,17 +2,17 @@
 import React, { useState, useRef, useMemo, useEffect, Suspense, lazy } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "./auth/AuthContext.jsx";
-import { useConfirm } from "./confirm.jsx";
 import { useToast } from "./toasts.jsx";
 import {
   useAssets, useAudit, useUsers, useReportSummary, useAlerts, useDepartments,
-  useCreateAsset, useUpdateAsset, useRemoveAsset, useRestoreAsset, usePref, useSetPref
+  useCreateAsset, useUpdateAsset, useRemoveAsset, useRestoreAsset, usePref, useSetPref,
+  useSetInStock, useOpenRepair
 } from "./api/hooks.js";
 import { api } from "./api/client.js";
 import { ASSET_TYPES, DEPARTMENTS } from "@its/shared/constants";
 import { Icon, ICONS, Sidebar, StatCard, FilterDropdown, useIsMobile } from "./components.jsx";
 import {
-  DetailDrawer, AssignModal, AssetTable, AssetCardList, EmployeesGrid, VIEW_COLUMNS, EmptyState
+  DetailDrawer, RemoveAssetModal, AssignModal, AssetTable, AssetCardList, EmployeesGrid, VIEW_COLUMNS, EmptyState
 } from "./views.jsx";
 import {
   coverageOf, DashboardInsights, DepartmentsPage, ReportsPage, AuditLogPage, UsersPage
@@ -97,7 +97,6 @@ function PinnableTiles({ stats, summary, totalInventory, assets, onOpenDept, onN
 
 export default function App() {
   const { user: currentUser, loading: authLoading, login, logout, can } = useAuth();
-  const confirm = useConfirm();
   const canManage = can && can("IT-Manager");
 
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -136,6 +135,7 @@ export default function App() {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("assign");
   const [editing, setEditing] = useState(null);
+  const [removeTarget, setRemoveTarget] = useState(null);
   const { showToast, push: pushToast } = useToast();
 
   // --- data ---
@@ -158,6 +158,9 @@ export default function App() {
   const updateM = useUpdateAsset();
   const removeM = useRemoveAsset();
   const restoreM = useRestoreAsset();
+  const unassignM = useUpdateAsset();
+  const setInStockM = useSetInStock();
+  const openRepairM = useOpenRepair();
 
   // First-login guided tour — auto-run once, then remember via the tourSeen pref.
   const tourSeenQ = usePref("tourSeen", !!currentUser);
@@ -295,17 +298,51 @@ export default function App() {
     }
   };
 
-  const handleRemove = async (a) => {
+  const openRemove = (a) => {
     if (!canManage) return showToast("Read-only — ask an IT Manager");
-    const ok = await confirm({
-      title: `Retire ${a.id}?`,
-      body: `${a.shared ? "This machine" : a.pseudo + "'s machine"} will be retired (archived). History is kept and it can be restored later.`,
-      confirmLabel: "Retire"
-    });
-    if (!ok) return;
+    setRemoveTarget(a);
+  };
+  const closeRemove = () => setRemoveTarget(null);
+
+  // Unassigning clears pseudo (asset becomes the shared/day-shift placeholder) — a no-op for
+  // already-shared assets, so repair/stock destinations don't need to special-case that.
+  const unassign = (a) => a.shared ? Promise.resolve() : new Promise((resolve, reject) => {
+    unassignM.mutate({ id: a.id, input: { pseudo: "" } }, { onSuccess: resolve, onError: reject });
+  });
+
+  const handleSendRepair = async (reason) => {
+    const a = removeTarget;
+    try {
+      await unassign(a);
+      openRepairM.mutate({ assetId: a.id, issue: reason }, {
+        onSuccess: () => {
+          closeDrawer(); closeRemove();
+          pushToast({ title: `${a.id} sent to repair`, body: a.shared ? undefined : `unassigned from ${a.pseudo}`, tone: "success", ttl: 8000 });
+        },
+        onError: (e) => showToast(e.message, "error")
+      });
+    } catch (e) { showToast(e?.message || "Failed to unassign", "error"); }
+  };
+
+  const handleReturnStock = async () => {
+    const a = removeTarget;
+    try {
+      await unassign(a);
+      setInStockM.mutate({ id: a.id, inStock: true }, {
+        onSuccess: () => {
+          closeDrawer(); closeRemove();
+          pushToast({ title: `${a.id} returned to spare stock`, body: a.shared ? undefined : `unassigned from ${a.pseudo}`, tone: "success", ttl: 8000 });
+        },
+        onError: (e) => showToast(e.message, "error")
+      });
+    } catch (e) { showToast(e?.message || "Failed to unassign", "error"); }
+  };
+
+  const handleRetire = () => {
+    const a = removeTarget;
     removeM.mutate(a.id, {
       onSuccess: () => {
-        closeDrawer();
+        closeDrawer(); closeRemove();
         pushToast({
           title: `${a.id} retired`,
           body: a.pseudo ? `from ${a.pseudo}` : "removed from register",
@@ -316,6 +353,7 @@ export default function App() {
       onError: (e) => showToast(e.message, "error")
     });
   };
+  const removeIsPending = removeM.isPending || unassignM.isPending || setInStockM.isPending || openRepairM.isPending;
 
   const openDeptFilter = (d) => { setDeptFilter(d); navTo("Assets"); };
   const previewRows = filtered.slice(0, 7);
@@ -475,8 +513,11 @@ export default function App() {
       </div>
 
       <DetailDrawer asset={selected} onClose={closeDrawer} canManage={canManage}
-        onEdit={canManage ? openEdit : undefined} onRemove={canManage ? handleRemove : undefined}
+        onEdit={canManage ? openEdit : undefined} onRemove={canManage ? openRemove : undefined}
         isPending={removeM.isPending} />
+      <RemoveAssetModal asset={removeTarget} onClose={closeRemove}
+        onSendRepair={handleSendRepair} onReturnStock={handleReturnStock} onRetire={handleRetire}
+        isPending={removeIsPending} />
       <AssignModal open={modalOpen} mode={modalMode} initial={editing}
         onClose={() => { setModalOpen(false); setEditing(null); }} onSubmit={handleSubmit}
         departments={deptNames} types={ASSET_TYPES} assets={assets}

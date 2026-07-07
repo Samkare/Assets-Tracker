@@ -27,5 +27,9 @@
   "devDependencies": {
     "concurrently": "^9.1.0",
     "cross-env": "^7.0.3"
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "esbuild@0.25.12": true
   }
 }

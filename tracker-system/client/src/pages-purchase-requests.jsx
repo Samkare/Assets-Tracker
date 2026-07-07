@@ -120,7 +120,7 @@ function NewRequestForm({ onClose }) {
 /* ---------- detail / review modal ---------- */
 // Approvers open this to VERIFY the full request before deciding. Approve/Reject live here
 // (not in the table) so an Admin can't act without seeing the details first.
-function PRDetailModal({ pr, canAdmin, canManage, activePo, onGeneratePO, onClose }) {
+function PRDetailModal({ pr, canAdmin, canManage, activePos = [], onGeneratePO, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const setStatus = useSetPRStatus({
@@ -185,18 +185,24 @@ function PRDetailModal({ pr, canAdmin, canManage, activePo, onGeneratePO, onClos
               </button>
             </React.Fragment>
           ) : pr.status === "Approved" ? (
-            activePo ? (
-              <React.Fragment>
+            <React.Fragment>
+              {activePos.length ? (
                 <span className="cell-muted" style={{ marginRight: "auto" }}>
-                  Linked PO: <span className="mono">{activePo.poNumber}</span> · {activePo.status}
+                  {activePos.length === 1 ? "Linked PO: " : `Linked POs (${activePos.length}): `}
+                  {activePos.map((po, i) => (
+                    <React.Fragment key={po.id}>
+                      {i > 0 ? ", " : ""}<span className="mono">{po.poNumber}</span> · {po.status}
+                    </React.Fragment>
+                  ))}
                 </span>
-                <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
-              </React.Fragment>
-            ) : canManage ? (
-              <button type="button" className="btn btn-primary btn-sm" onClick={() => onGeneratePO(pr)}>Generate PO</button>
-            ) : (
+              ) : null}
+              {canManage ? (
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => onGeneratePO(pr)}>
+                  {activePos.length ? "Generate another PO" : "Generate PO"}
+                </button>
+              ) : null}
               <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
-            )
+            </React.Fragment>
           ) : canAdmin && pr.status === "Rejected" ? (
             <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
           ) : (
@@ -214,10 +220,11 @@ function PurchaseRequestsPage({ canManage, canAdmin, initialFilter }) {
   const [selected, setSelected] = useState(null);       // PR being reviewed in the modal
   const [generatingFor, setGeneratingFor] = useState(null); // PR we're generating a PO from
   const { data: rows = [], isLoading } = usePurchaseRequests(filter === "All" ? {} : { status: filter });
-  // map each PR to its active (non-cancelled) PO, so the modal shows "Generate PO" vs the linked PO
+  // map each PR to ALL its active (non-cancelled) POs — a PR can back more than one PO
+  // (split/partial fulfillment), so the modal lists every linked PO, not just the first.
   const { data: pos = [] } = usePurchaseOrders();
-  const activePoByPr = {};
-  for (const po of pos) { if (po.status !== "Cancelled" && !activePoByPr[po.prId]) activePoByPr[po.prId] = po; }
+  const activePosByPr = {};
+  for (const po of pos) { if (po.status !== "Cancelled") (activePosByPr[po.prId] = activePosByPr[po.prId] || []).push(po); }
 
   return (
     <React.Fragment>
@@ -296,7 +303,7 @@ function PurchaseRequestsPage({ canManage, canAdmin, initialFilter }) {
 
       {selected ? (
         <PRDetailModal pr={selected} canAdmin={canAdmin} canManage={canManage}
-          activePo={activePoByPr[selected.id] || null}
+          activePos={activePosByPr[selected.id] || []}
           onGeneratePO={(pr) => { setSelected(null); setGeneratingFor(pr); }}
           onClose={() => setSelected(null)} />
       ) : null}

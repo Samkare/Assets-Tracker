@@ -27,6 +27,14 @@ router.get("/:id/history", requireAuth, asyncHandler((req, res) => {
   res.json(svc.getHistory(req.params.id));
 }));
 
+// --- Asset Assignment tab: live-stock item assign / unassign for this machine's holder ---
+router.get("/:id/items", requireAuth, asyncHandler((req, res) =>
+  res.json(svc.listAssignedItems(req.params.id))));
+router.post("/:id/assign-item", requireRole("IT-Manager"), asyncHandler((req, res) =>
+  res.json(svc.assignItem(req.params.id, req.body, actor(req)))));
+router.post("/:id/unassign-item", requireRole("IT-Manager"), asyncHandler((req, res) =>
+  res.json(svc.unassignItem(req.params.id, req.body, actor(req)))));
+
 router.post("/bulk", requireRole("IT-Manager"), asyncHandler((req, res) => {
   const { ids, action, payload } = req.body || {};
   res.json(svc.bulkAction(ids, action, payload, actor(req)));

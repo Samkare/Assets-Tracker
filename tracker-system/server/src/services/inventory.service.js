@@ -1,6 +1,14 @@
 import db from "../db/connection.js";
 import { HttpError } from "../middleware/error.js";
 import { insertAudit } from "../db/repo.js";
+import { PERIPHERALS } from "@its/shared/constants";
+
+// Fixed peripherals (Mouse, Keyboard, ...) are one-per-asset. Matches by item name against
+// the same label set the asset-edit peripheral toggle uses (assets.service.js).
+function assetPeripheralColumn(itemName) {
+  const p = PERIPHERALS.find((p) => p.label.toLowerCase() === String(itemName || "").trim().toLowerCase());
+  return p ? p.col : null;
+}
 
 const MOVE_ACTION = { in: "stock-in", out: "stock-out", return: "stock-return", adjust: "stock-adjust" };
 const MOVE_VERB   = { in: "Received", out: "Issued", return: "Returned", adjust: "Adjusted" };
@@ -113,6 +121,22 @@ function move(id, { type, qty, reason, employeeName, assetId, supplierId, unitCo
     if (target.type !== "return" || target.condition !== "defective") throw new HttpError(400, "Replacement target is not a defective return");
     if (target.replaced_by) throw new HttpError(409, "That defective return is already replaced");
   }
+  // Fixed one-per-asset peripherals issued through the general stock ledger must not stack
+  // past 1 — same "return before reissue" rule as spare assets (assets.service.js issueSpare).
+  if (type === "out" && assetId) {
+    const col = assetPeripheralColumn(item.name);
+    if (col) {
+      if (n > 1) throw new HttpError(400, `Only 1 ${item.name} can be issued to a single asset at a time`);
+      const asset = db.prepare(`SELECT ${col} AS has FROM assets WHERE id = ?`).get(assetId);
+      const held = db.prepare(
+        `SELECT COALESCE(SUM(CASE WHEN type='out' THEN qty WHEN type='return' THEN -qty ELSE 0 END),0) n
+         FROM stock_movements WHERE item_id = ? AND asset_id = ?`
+      ).get(id, assetId).n;
+      if ((asset && asset.has) || held > 0) {
+        throw new HttpError(409, `${assetId} already has a ${item.name} assigned — return it before issuing another`);
+      }
+    }
+  }
   let movementId = null;
   const tx = db.transaction(() => {
     // CRIT-8: atomic qty guard — DB rejects if stock would go negative
@@ -158,6 +182,42 @@ function move(id, { type, qty, reason, employeeName, assetId, supplierId, unitCo
 export const receive = (id, b, actor) => move(id, { ...b, type: "in" }, actor);
 export const issue   = (id, b, actor) => move(id, { ...b, type: "out" }, actor);
 export const giveBack = (id, b, actor) => move(id, { ...b, type: "return" }, actor);
+
+// Return an item that was issued to an asset/user, via the 3-option flow used across the app:
+//   destination = 'stock'  → good return: +qty back into the sellable pool (the only one that restocks)
+//   destination = 'repair' → pulled out of sellable stock, flagged defective (surfaces on Defective Items)
+//   destination = 'retire' → scrapped and written off
+// Only functional units count toward available stock, so 'repair' and 'retire' both leave the sellable
+// pool unchanged — they clear the user's custody without adding the unit back.
+export function returnFromAsset(id, { qty = 1, assetId = null, employeeName = null, destination = "stock", reason = null } = {}, actor) {
+  const item = db.prepare("SELECT * FROM consumables WHERE id=?").get(id);
+  if (!item) throw new HttpError(404, "Item not found");
+  if (destination === "stock") return giveBack(id, { qty, assetId, employeeName, condition: "good", reason }, actor);
+  if (destination !== "repair" && destination !== "retire")
+    throw new HttpError(400, "destination must be one of: stock, repair, retire");
+
+  // repair/retire: neither returns the unit to the sellable pool. A custody 'return' row (which clears
+  // the user's held count) is immediately offset by an 'adjust' write-off row, so the movement ledger
+  // stays reconciled with qty — the two rows net to zero, matching the fact that we do NOT bump qty.
+  // The -1 was already taken at issue time, so the pool stays permanently down by qty. One transaction.
+  //   · repair → the return is flagged 'defective' so it surfaces on the Defective Items page for tracking
+  //   · retire → the return is left unflagged (not defective) — it's scrapped, not awaiting repair
+  const n = Math.trunc(Number(qty));
+  if (!n || n <= 0) throw new HttpError(400, "Quantity must be a positive number");
+  const repairing = destination === "repair";
+  const note = reason || (repairing ? "Sent for repair" : "Retired from user (scrapped)");
+  const tx = db.transaction(() => {
+    db.prepare(`INSERT INTO stock_movements (item_id, type, qty, reason, employee_name, asset_id, actor, condition)
+      VALUES (?,?,?,?,?,?,?,?)`).run(id, "return", n, note, employeeName, assetId, actor, repairing ? "defective" : null);
+    db.prepare(`INSERT INTO stock_movements (item_id, type, qty, reason, actor)
+      VALUES (?,?,?,?,?)`).run(id, "adjust", -n, `${repairing ? "Under repair" : "Scrapped"} — ${note}`, actor);
+    insertAudit({ actor, action: "stock-out", tag: assetId,
+      subject: employeeName || assetId || item.name, dept: null,
+      detail: `${repairing ? "Sent to repair" : "Retired"} ${n} × ${item.name} from ${employeeName || assetId || "asset"} — not restocked` });
+  });
+  tx();
+  return getItem(id);
+}
 
 // signed correction (+/-), floored at 0; logged as an 'adjust' movement
 export function adjust(id, b, actor) {
