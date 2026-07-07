@@ -152,6 +152,44 @@ test("inventory: create → receive → issue → valuation", async () => {
   assert.ok(val.data.totalValue >= 14);
 });
 
+test("inventory: fixed one-per-asset peripherals can't be over-issued via the general Issue screen", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  // named "Keyboard" (not "Mouse") to avoid colliding with the separate Mouse item used by the
+  // idempotent-assignment test below — adjustPeripheralStock matches items by name.
+  const kb = await req("POST", "/api/inventory", { name: "Keyboard", kind: "accessory", qty: 10, reorderLevel: 2, reorderQty: 10, unit: "pcs", unitCost: 5 });
+  assert.equal(kb.status, 201);
+  const id = kb.data.id;
+  await req("POST", "/api/assets", { id: "TS-KB-REGRESSION", pseudo: "Keyboard Tester", dept: "Sales", type: "Laptop" });
+
+  // issuing 2 at once to a single asset is rejected outright
+  const bulk = await req("POST", `/api/inventory/${id}/issue`, { qty: 2, employeeName: "Keyboard Tester", assetId: "TS-KB-REGRESSION" });
+  assert.equal(bulk.status, 400);
+
+  // one issue succeeds
+  const first = await req("POST", `/api/inventory/${id}/issue`, { qty: 1, employeeName: "Keyboard Tester", assetId: "TS-KB-REGRESSION" });
+  assert.equal(first.status, 200);
+  assert.equal(first.data.qty, 9);
+
+  // a second issue to the SAME asset (already holding one, unreturned) is rejected
+  const second = await req("POST", `/api/inventory/${id}/issue`, { qty: 1, employeeName: "Keyboard Tester", assetId: "TS-KB-REGRESSION" });
+  assert.equal(second.status, 409);
+  assert.equal(second.data.qty, undefined); // no partial mutation — stock untouched
+
+  // also rejected once the boolean peripheral flag is set directly (no stock_movements yet)
+  await req("POST", "/api/assets", { id: "TS-KB-REGRESSION-2", pseudo: "Keyboard Tester 2", dept: "Sales", type: "Laptop" });
+  await req("PUT", "/api/assets/TS-KB-REGRESSION-2", { keyboard: true });
+  const viaFlag = await req("POST", `/api/inventory/${id}/issue`, { qty: 1, employeeName: "Keyboard Tester 2", assetId: "TS-KB-REGRESSION-2" });
+  assert.equal(viaFlag.status, 409);
+
+  // returning it frees the asset up for a fresh issue
+  await req("POST", `/api/inventory/${id}/return`, { qty: 1, employeeName: "Keyboard Tester", assetId: "TS-KB-REGRESSION" });
+  const again = await req("POST", `/api/inventory/${id}/issue`, { qty: 1, employeeName: "Keyboard Tester", assetId: "TS-KB-REGRESSION" });
+  assert.equal(again.status, 200);
+
+  await req("DELETE", "/api/assets/TS-KB-REGRESSION");
+  await req("DELETE", "/api/assets/TS-KB-REGRESSION-2");
+});
+
 test("inventory: low-stock surfaces in alerts with a reorder suggestion", async () => {
   const a = await req("GET", "/api/alerts");
   // the test item is at qty 7 (>5) so not low; create a low one
@@ -173,6 +211,54 @@ test("spare hardware: mark in-stock → list → issue", async () => {
   const issued = await req("POST", `/api/assets/${any.id}/issue-spare`, { pseudo: "SpareGuy", dept: "Sales" });
   assert.equal(issued.data.inStock, false);
   assert.equal(issued.data.pseudo, "SpareGuy");
+});
+
+test("spare hardware: an already-assigned spare cannot be reissued until returned to stock", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const asset = await req("POST", "/api/assets", { id: "TS-SPARE-REGRESSION", pseudo: "Spare Regression Unit", dept: "Sales", type: "Laptop", shared: true });
+  assert.equal(asset.status, 201);
+  await req("PUT", "/api/assets/TS-SPARE-REGRESSION/in-stock", { inStock: true });
+  const first = await req("POST", "/api/assets/TS-SPARE-REGRESSION/issue-spare", { pseudo: "Employee A", dept: "Sales" });
+  assert.equal(first.status, 200);
+  assert.equal(first.data.inStock, false);
+
+  // still assigned to Employee A — reissuing to someone else must be rejected, not silently reassigned
+  const reissue = await req("POST", "/api/assets/TS-SPARE-REGRESSION/issue-spare", { pseudo: "Employee B", dept: "Sales" });
+  assert.equal(reissue.status, 409);
+  const stillA = await req("GET", "/api/assets/TS-SPARE-REGRESSION");
+  assert.equal(stillA.data.pseudo, "Employee A");
+
+  // return to spare stock, then reissuing works again
+  await req("PUT", "/api/assets/TS-SPARE-REGRESSION/in-stock", { inStock: true });
+  const second = await req("POST", "/api/assets/TS-SPARE-REGRESSION/issue-spare", { pseudo: "Employee B", dept: "Sales" });
+  assert.equal(second.status, 200);
+  assert.equal(second.data.pseudo, "Employee B");
+
+  await req("DELETE", "/api/assets/TS-SPARE-REGRESSION");
+});
+
+test("inventory: peripheral assignment is idempotent (no double-deduct, correct return)", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const item = await req("POST", "/api/inventory", { name: "Mouse", kind: "accessory", qty: 5, reorderLevel: 1, reorderQty: 10, unit: "pcs", unitCost: 5 });
+  assert.equal(item.status, 201);
+  await req("POST", "/api/assets", { id: "TS-PERIPH-REGRESSION", pseudo: "Periph Tester", dept: "Sales", type: "Laptop" });
+
+  const assigned = await req("PUT", "/api/assets/TS-PERIPH-REGRESSION", { mouse: true });
+  assert.equal(assigned.data.mouse, true);
+  let stock = await req("GET", `/api/inventory/${item.data.id}`);
+  assert.equal(stock.data.qty, 4); // 5 -> 4
+
+  // re-sending mouse:true (already assigned) must NOT deduct again
+  await req("PUT", "/api/assets/TS-PERIPH-REGRESSION", { mouse: true });
+  stock = await req("GET", `/api/inventory/${item.data.id}`);
+  assert.equal(stock.data.qty, 4);
+
+  // unassigning returns the unit to stock
+  await req("PUT", "/api/assets/TS-PERIPH-REGRESSION", { mouse: false });
+  stock = await req("GET", `/api/inventory/${item.data.id}`);
+  assert.equal(stock.data.qty, 5);
+
+  await req("DELETE", "/api/assets/TS-PERIPH-REGRESSION");
 });
 
 test("RBAC: Viewer cannot create assets", async () => {

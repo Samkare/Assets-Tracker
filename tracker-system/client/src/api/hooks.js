@@ -90,6 +90,30 @@ export function useAssetHistory(id, enabled = true) {
   return useQuery({ queryKey: ["assets", id, "history"], queryFn: () => api.get(`/assets/${id}/history`), enabled: enabled && !!id });
 }
 
+// --- Asset Assignment tab: stock items issued to the person on this machine ---
+export function useAssignedItems(assetId, enabled = true) {
+  return useQuery({ queryKey: ["assets", assetId, "items"], queryFn: () => api.get(`/assets/${assetId}/items`), enabled: enabled && !!assetId });
+}
+function useAssignmentMutation(fn, opts) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (data, vars) => {
+      // ["assets"] prefix also covers the per-asset ["assets", id, "items"] list
+      qc.invalidateQueries({ queryKey: ["assets"] });
+      qc.invalidateQueries({ queryKey: ["inventory"] });   // stock qty changed
+      qc.invalidateQueries({ queryKey: ["consumables"] });
+      qc.invalidateQueries({ queryKey: ["alerts"] });      // may cross a reorder threshold
+      qc.invalidateQueries({ queryKey: ["audit"] });
+      qc.invalidateQueries({ queryKey: ["reports"] });
+      opts?.onSuccess?.(data, vars);
+    },
+    onError: opts?.onError
+  });
+}
+export const useAssignItem   = (o) => useAssignmentMutation(({ id, itemId, qty, note }) => api.post(`/assets/${id}/assign-item`, { itemId, qty, note }), o);
+export const useUnassignItem = (o) => useAssignmentMutation(({ id, itemId, qty, destination, reason }) => api.post(`/assets/${id}/unassign-item`, { itemId, qty, destination, reason }), o);
+
 // --- repairs ---
 export function useRepairs(params = {}, enabled = true) {
   return useQuery({ queryKey: ["repairs", params], queryFn: () => api.get(`/repairs${qs(params)}`), enabled });

@@ -24,12 +24,12 @@ npm install
 npm run seed                  # migrate + load ~166 assets from ../uploads/parsed-rows.json
 ```
 
-The seed prints the **bootstrap admin** (default `finnbelgium@gmail.com`). All seeded accounts
+The seed prints the **bootstrap admin** (default `santosh@belgiumdia.com`). All seeded accounts
 start with a temporary password and are forced to set a new one on first login.
 
 | User | Role | Temp password |
 |------|------|---------------|
-| finnbelgium@gmail.com (bootstrap) | Admin | from `BOOTSTRAP_ADMIN_PASSWORD` |
+| santosh@belgiumdia.com (bootstrap) | Admin | from `BOOTSTRAP_ADMIN_PASSWORD` |
 | santosh@tasksource.io | Admin | `Welcome!2026` |
 | sachin@tasksource.io, mahendra@tasksource.io | IT-Manager | `Welcome!2026` |
 

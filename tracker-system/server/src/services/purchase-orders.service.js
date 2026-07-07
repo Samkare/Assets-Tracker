@@ -95,9 +95,10 @@ export function firstSuggestedVendor(prId) {
   return first || null;
 }
 
-// Create a PO — either from an APPROVED PR (prId set: snapshots dept/category, one-active guard)
-// or STANDALONE (prId null: uses the department/category provided in the form). Grand total is
-// computed from the line items and stored in final_amount.
+// Create a PO — either from an APPROVED PR (prId set: snapshots dept/category; a PR may back
+// more than one PO, e.g. split/partial fulfillment across vendors) or STANDALONE (prId null:
+// uses the department/category provided in the form). Grand total is computed from the line
+// items and stored in final_amount.
 export function generatePO(input, actor) {
   let department = input.department ?? null;
   let category = input.category ?? null;
@@ -109,10 +110,6 @@ export function generatePO(input, actor) {
     if (pr.status !== "Approved") {
       throw new HttpError(409, `A PO can only be generated from an Approved PR (PR is ${pr.status})`);
     }
-    const active = db.prepare(
-      "SELECT po_number FROM purchase_orders WHERE pr_id = ? AND status != 'Cancelled'"
-    ).get(input.prId);
-    if (active) throw new HttpError(409, `${pr.pr_number} already has an active PO (${active.po_number})`);
     department = pr.department;   // snapshot from the PR (authoritative — overrides any client value)
     category = pr.category;
     prNumber = pr.pr_number;

@@ -1,8 +1,10 @@
 // Task Source — table, drawer, modal, page views
 import React, { useState, useEffect, useRef } from "react";
 import { Icon, ICONS, typeIcon, Avatar, DeptBadge, PERIPHERALS, PeriphChips, MonitorCell, Field } from "./components.jsx";
-import { useAssetHistory, useRepairs, useOpenRepair, useTemplates, usePeripherals } from "./api/hooks.js";
+import { useAssetHistory, useRepairs, useOpenRepair, useTemplates, usePeripherals,
+  useInventory, useAssignedItems, useAssignItem, useUnassignItem } from "./api/hooks.js";
 import { useFocusTrap } from "./useFocusTrap.js";
+import { useToast } from "./toasts.jsx";
 
 function fmtHistTime(iso) {
   const d = new Date(iso);
@@ -100,9 +102,149 @@ function RepairsTab({ a, canManage }) {
 
 const DRAWER_TABS = [
   { key: "Specs", label: "Specs" },
+  { key: "Assignment", label: "Asset Assignment" },
   { key: "History", label: "History" },
   { key: "Repairs", label: "Repairs" },
 ];
+
+/* ---------- drawer tabs: asset assignment (live-stock issue / return) ---------- */
+// 3-option return flow, mirroring the machine-level RemoveAssetModal. Keys line up with the
+// backend `destination` values AND the .allocate-option-<key> styling already in the CSS.
+const RETURN_DESTINATIONS = [
+  { key: "stock",  icon: ICONS.assets, title: "Return to Stock", body: "Puts the unit back into available stock." },
+  { key: "repair", icon: ICONS.wrench, title: "Send to Repair", body: "Removes it from sellable stock, flagged defective." },
+  { key: "retire", icon: ICONS.logout, title: "Retire", body: "Writes the unit off — not returned to stock." },
+];
+const RETURN_MSG = { stock: "returned to stock", repair: "sent for repair", retire: "retired" };
+
+// The Minus (−) popup. Rendered nested inside the drawer, so Escape is handled in the capture
+// phase to close only this modal — otherwise the drawer's own Escape listener would fire too.
+function UnassignItemModal({ item, assetLabel, onClose, onConfirm, isPending = false }) {
+  const [choice, setChoice] = useState("stock");
+  const [reason, setReason] = useState("");
+  const dialogRef = useRef(null);
+  useFocusTrap(dialogRef, !!item);
+  useEffect(() => {
+    if (!item) return;
+    setChoice("stock");
+    setReason("");
+    const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); if (!isPending) onClose(); } };
+    document.addEventListener("keydown", onKey, true); // capture: run before the drawer's listener
+    return () => document.removeEventListener("keydown", onKey, true);
+  }, [item]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!item) return null;
+  const active = RETURN_DESTINATIONS.find((d) => d.key === choice);
+  return (
+    <div className="modal-root" role="dialog" aria-modal="true" aria-label={`Return ${item.name}`}>
+      <div className="modal-scrim" onClick={() => !isPending && onClose()} />
+      <div className="modal confirm-modal allocate-modal" ref={dialogRef}>
+        <div className="confirm-head">
+          <span className="confirm-ico"><Icon d={ICONS.logout} size={18} /></span>
+          <h2 className="modal-title">Return {item.name}{assetLabel ? ` from ${assetLabel}` : ""}?</h2>
+        </div>
+        <p className="confirm-body">Choose where this unit goes. Only “Return to Stock” adds it back to available stock.</p>
+        <div className="allocate-options" role="radiogroup" aria-label="Destination">
+          {RETURN_DESTINATIONS.map((d) => (
+            <button type="button" key={d.key} role="radio" aria-checked={choice === d.key}
+              className={"allocate-option allocate-option-" + d.key + (choice === d.key ? " allocate-option-on" : "")}
+              onClick={() => setChoice(d.key)} disabled={isPending}>
+              <span className="allocate-option-ico"><Icon d={d.icon} size={16} /></span>
+              <span className="allocate-option-text">
+                <span className="allocate-option-title">{d.title}</span>
+                <span className="allocate-option-body">{d.body}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+        <label className="allocate-reason-label">
+          Note <span className="cell-muted">(optional)</span>
+          <input className="input" value={reason} onChange={(e) => setReason(e.target.value)}
+            placeholder="e.g. cracked casing, replaced under warranty…" disabled={isPending} />
+        </label>
+        <div className="confirm-foot">
+          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="button" className={"btn " + (choice === "retire" ? "btn-ghost-danger confirm-danger-btn" : "btn-primary")}
+            onClick={() => onConfirm(choice, reason.trim())} disabled={isPending}>
+            {isPending ? "Working…" : active.title}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AssetAssignmentTab({ a, canManage }) {
+  const { showToast } = useToast();
+  const { data: assigned = [], isLoading } = useAssignedItems(a.id);
+  const { data: stock = [] } = useInventory({}, canManage);
+  const [pick, setPick] = useState("");
+  const [returning, setReturning] = useState(null); // the held-item row being returned
+  const retired = a.status === "retired";
+
+  const assignM = useAssignItem({
+    onSuccess: (r) => { setPick(""); showToast(`Assigned ${r?.item?.name || "item"} to ${a.shared ? "shared PC" : a.pseudo}`, "success"); },
+    onError: (e) => showToast(e.message || "Couldn’t assign item", "error"),
+  });
+  const unassignM = useUnassignItem({
+    onSuccess: (r) => { setReturning(null); showToast(`${r?.item?.name || "Item"} ${RETURN_MSG[r?.destination] || "returned"}`, "success"); },
+    onError: (e) => showToast(e.message || "Couldn’t return item", "error"),
+  });
+
+  const options = (stock || []).filter((s) => (s.qty || 0) > 0); // live, in-stock items only
+  const doAssign = () => { if (pick) assignM.mutate({ id: a.id, itemId: Number(pick) }); };
+  const confirmReturn = (destination, reason) =>
+    unassignM.mutate({ id: a.id, itemId: returning.itemId, destination, reason });
+
+  return (
+    <div className="drawer-section">
+      {retired ? <div className="assign-note">This asset is retired — restore it before assigning stock items.</div> : null}
+
+      {canManage && !retired ? (
+        <div className="assign-pick">
+          <div className="drawer-section-title">Assign from stock</div>
+          <div className="assign-pick-row">
+            <select className="input" value={pick} onChange={(e) => setPick(e.target.value)}
+              disabled={assignM.isPending || options.length === 0} aria-label="Stock item to assign">
+              <option value="">{options.length ? "Select a stock item…" : "No stock available"}</option>
+              {options.map((s) => (
+                <option key={s.id} value={s.id}>{s.name} · {s.qty} in stock{s.low ? " (low)" : ""}</option>
+              ))}
+            </select>
+            <button type="button" className="btn btn-primary assign-plus" onClick={doAssign}
+              disabled={!pick || assignM.isPending} aria-label="Assign selected item">
+              <Icon d={ICONS.plus} size={14} /> Assign
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="drawer-section-title assign-held-title">Assigned items</div>
+      {isLoading ? <div className="cell-muted">Loading…</div>
+        : assigned.length === 0 ? <div className="cell-muted">No stock items assigned to {a.shared ? "this PC" : a.pseudo} yet.</div>
+        : (
+          <div className="assign-list">
+            {assigned.map((it) => (
+              <div className="assign-row" key={it.itemId}>
+                <span className="assign-row-ico"><Icon d={ICONS.assets} size={15} /></span>
+                <span className="assign-row-name">{it.name}</span>
+                <span className="assign-row-qty">{it.held}{it.unit ? " " + it.unit : ""}</span>
+                {canManage ? (
+                  <button type="button" className="btn btn-ghost-danger btn-sm assign-minus"
+                    onClick={() => setReturning(it)} disabled={unassignM.isPending}
+                    aria-label={`Return ${it.name}`}>
+                    <Icon d={ICONS.minus} size={14} /> Return
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+
+      <UnassignItemModal item={returning} assetLabel={a.shared ? null : a.pseudo}
+        onClose={() => setReturning(null)} onConfirm={confirmReturn} isPending={unassignM.isPending} />
+    </div>
+  );
+}
 
 /* ---------- detail popup ---------- */
 function DetailDrawer({ asset, onClose, onEdit, onRemove, canManage = false, isPending = false }) {
@@ -110,9 +252,12 @@ function DetailDrawer({ asset, onClose, onEdit, onRemove, canManage = false, isP
   const dialogRef = useRef(null);
   const { data: customPeriphs = [] } = usePeripherals(!!asset);
   useFocusTrap(dialogRef, !!asset);
+  // Reset to Specs only when a DIFFERENT asset is opened — keying on identity would also fire on
+  // background refetches (e.g. after assigning stock invalidates ["assets"]), bouncing the operator
+  // off whichever tab they're on. Keying on the id keeps them put across those refetches.
+  useEffect(() => { if (asset) setTab("Specs"); }, [asset?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!asset) return;
-    setTab("Specs");
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
@@ -204,16 +349,89 @@ function DetailDrawer({ asset, onClose, onEdit, onRemove, canManage = false, isP
           </React.Fragment>
           ) : null}
 
+          {tab === "Assignment" ? <AssetAssignmentTab a={a} canManage={canManage} /> : null}
           {tab === "History" ? <HistoryTab a={a} /> : null}
           {tab === "Repairs" ? <RepairsTab a={a} canManage={canManage} /> : null}
         </div>
 
         <div className="modal-foot detail-foot">
           <button type="button" className="btn btn-ghost-danger" disabled={isPending} onClick={() => onRemove(a)}>
-            {isPending ? "Working…" : "Retire"}
+            {isPending ? "Working…" : "Remove"}
           </button>
           <button type="button" className="btn btn-secondary" onClick={() => onEdit(a)} disabled={isPending}>
             <Icon d={ICONS.edit} size={14} /> Edit details
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- remove-asset destination popup: repair / spare stock / retire ---------- */
+const REMOVE_DESTINATIONS = [
+  { key: "repair", icon: ICONS.wrench, title: "Send to Repair", body: "Opens a repair ticket and frees it up." },
+  { key: "stock", icon: ICONS.assets, title: "Return to Spare Stock", body: "Marks it available to issue to someone else." },
+  { key: "retire", icon: ICONS.logout, title: "Retire completely", body: "Archives the record. Kept in history — can be restored later." }
+];
+
+function RemoveAssetModal({ asset, onClose, onSendRepair, onReturnStock, onRetire, isPending = false }) {
+  const [choice, setChoice] = useState("repair");
+  const [reason, setReason] = useState("");
+  const dialogRef = useRef(null);
+  useFocusTrap(dialogRef, !!asset);
+  useEffect(() => {
+    if (!asset) return;
+    setChoice("repair");
+    setReason("");
+    const onKey = (e) => { if (e.key === "Escape" && !isPending) onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [asset]);
+  if (!asset) return null;
+  const a = asset;
+  const needsReason = choice === "repair";
+  const canSubmit = !isPending && (!needsReason || reason.trim());
+  const submit = () => {
+    if (!canSubmit) return;
+    if (choice === "repair") onSendRepair(reason.trim());
+    else if (choice === "stock") onReturnStock();
+    else onRetire();
+  };
+  const active = REMOVE_DESTINATIONS.find((d) => d.key === choice);
+  return (
+    <div className="modal-root" role="dialog" aria-modal="true" aria-label={`Remove ${a.id}`}>
+      <div className="modal-scrim" onClick={() => !isPending && onClose()} />
+      <div className="modal confirm-modal allocate-modal" ref={dialogRef}>
+        <div className="confirm-head">
+          <span className="confirm-ico"><Icon d={ICONS.logout} size={18} /></span>
+          <h2 className="modal-title">Remove {a.id}{!a.shared ? ` from ${a.pseudo}` : ""}?</h2>
+        </div>
+        <p className="confirm-body">Choose where this asset goes next.</p>
+        <div className="allocate-options" role="radiogroup" aria-label="Destination">
+          {REMOVE_DESTINATIONS.map((d) => (
+            <button type="button" key={d.key} role="radio" aria-checked={choice === d.key}
+              className={"allocate-option allocate-option-" + d.key + (choice === d.key ? " allocate-option-on" : "")}
+              onClick={() => setChoice(d.key)} disabled={isPending}>
+              <span className="allocate-option-ico"><Icon d={d.icon} size={16} /></span>
+              <span className="allocate-option-text">
+                <span className="allocate-option-title">{d.title}</span>
+                <span className="allocate-option-body">{d.body}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+        {needsReason ? (
+          <label className="allocate-reason-label">
+            What's wrong?
+            <input className="input" value={reason} onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Screen flickering, won't boot…" disabled={isPending} autoFocus />
+          </label>
+        ) : null}
+        <div className="confirm-foot">
+          <button type="button" className="btn btn-secondary" onClick={onClose} disabled={isPending}>Cancel</button>
+          <button type="button" className={"btn " + (choice === "retire" ? "btn-ghost-danger confirm-danger-btn" : "btn-primary")}
+            onClick={submit} disabled={!canSubmit}>
+            {isPending ? "Working…" : active.title}
           </button>
         </div>
       </div>
@@ -696,4 +914,4 @@ function EmptyState({ onClear }) {
   );
 }
 
-export { DetailDrawer, AssignModal, AssetTable, BulkBar, AssetCardList, EmployeesGrid, VIEW_COLUMNS, EmptyState };
+export { DetailDrawer, RemoveAssetModal, AssignModal, AssetTable, BulkBar, AssetCardList, EmployeesGrid, VIEW_COLUMNS, EmptyState };

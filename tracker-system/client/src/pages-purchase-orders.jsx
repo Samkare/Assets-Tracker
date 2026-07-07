@@ -399,11 +399,8 @@ function POForm({ initial, onClose }) {
   const editing = !!initial;
   const { showToast } = useToast();
   const { data: suppliers = [] } = useSuppliers();
-  // create mode only: Approved PRs that don't already have an active PO (to optionally link)
-  const { data: approvedPRs = [] } = usePurchaseRequests({ status: "Approved" }, !editing);
-  const { data: allPOs = [] } = usePurchaseOrders({}, !editing);
-  const activePrIds = new Set(allPOs.filter((p) => p.status !== "Cancelled" && p.prId != null).map((p) => p.prId));
-  const availablePRs = approvedPRs.filter((pr) => !activePrIds.has(pr.id));
+  // create mode only: every Approved PR, so one PR can back more than one PO (split/partial fulfillment)
+  const { data: availablePRs = [] } = usePurchaseRequests({ status: "Approved" }, !editing);
 
   const [prId, setPrId] = useState(initial?.prId ? String(initial.prId) : "");
   const [vendor, setVendor] = useState(initial?.vendor || "");
@@ -495,13 +492,15 @@ function POForm({ initial, onClose }) {
               </div>
             ) : null}
           </label>
-          <label className="pr-field">
-            <span className="field-label">Department *</span>
-            <select className="input" value={department} onChange={(e) => setDepartment(e.target.value)} disabled={deptLocked} required>
-              <option value="">Select…</option>
-              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </label>
+          {!deptLocked ? (
+            <label className="pr-field">
+              <span className="field-label">Department *</span>
+              <select className="input" value={department} onChange={(e) => setDepartment(e.target.value)} required>
+                <option value="">Select…</option>
+                {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </label>
+          ) : null}
           <label className="pr-field">
             <span className="field-label">Category *</span>
             <select className="input" value={category} onChange={(e) => setCategory(e.target.value)} disabled={deptLocked} required>

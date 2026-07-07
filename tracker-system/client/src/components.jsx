@@ -47,6 +47,7 @@ export const ICONS = {
   logout: <><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path></>,
   wrench: <><path d="M14.6 6.5a3.5 3.5 0 0 1-4.7 4.3l-5 5a1.6 1.6 0 0 1-2.3-2.3l5-5a3.5 3.5 0 0 1 4.3-4.7l-2.2 2.2 1.8 1.8z"></path></>,
   plus: <><path d="M12 5v14"></path><path d="M5 12h14"></path></>,
+  minus: <path d="M5 12h14"></path>,
   chevDown: <path d="m6 9 6 6 6-6"></path>,
   close: <><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></>,
   check: <path d="m4.5 12.5 5 5 10-11"></path>,

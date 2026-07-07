@@ -182,6 +182,38 @@
 .confirm-body { margin: var(--sp-10) 0 0; font-size: var(--fs-13); color: var(--text-2); line-height: 1.5; }
 .confirm-foot { display: flex; justify-content: flex-end; gap: var(--sp-8); margin-top: var(--sp-20); }
 
+/* ---- remove-asset destination popup ---- */
+.allocate-modal { max-width: 460px; }
+.allocate-options { display: flex; flex-direction: column; gap: var(--sp-8); margin-top: var(--sp-14); }
+.allocate-option {
+  display: flex; align-items: flex-start; gap: var(--sp-10); text-align: left;
+  padding: var(--sp-10) var(--sp-12); border-radius: var(--radius); border: 1.5px solid var(--border);
+  background: var(--surface); cursor: pointer; transition: border-color .12s, background .12s;
+}
+.allocate-option:hover { background: var(--hover); }
+.allocate-option-ico { flex: none; width: 30px; height: 30px; border-radius: var(--radius-pill); display: grid; place-items: center; background: var(--hover); color: var(--text-2); }
+.allocate-option-title { display: block; font-size: var(--fs-13); font-weight: var(--weight-semibold); color: var(--text); }
+.allocate-option-body { display: block; font-size: var(--fs-12); color: var(--text-3); margin-top: 2px; }
+.allocate-option-on { border-color: var(--accent); background: var(--hover); }
+.allocate-option-on.allocate-option-repair .allocate-option-ico { background: var(--warn-bg); color: var(--warn-fg); }
+.allocate-option-on.allocate-option-stock .allocate-option-ico { background: var(--info-bg); color: var(--info-fg); }
+.allocate-option-on.allocate-option-retire .allocate-option-ico { background: var(--danger-bg); color: var(--danger-fg); }
+.allocate-reason-label { display: block; margin-top: var(--sp-12); font-size: var(--fs-12); color: var(--text-2); font-weight: var(--weight-semibold); }
+.allocate-reason-label .input { display: block; width: 100%; margin-top: var(--sp-6); }
+
+/* ---- Asset Assignment tab (drawer) ---- */
+.assign-pick { margin-bottom: var(--sp-16); }
+.assign-pick-row { display: flex; gap: var(--sp-8); margin-top: var(--sp-8); }
+.assign-pick-row .input { flex: 1; min-width: 0; }
+.assign-plus, .assign-minus { flex: none; }
+.assign-held-title { margin-top: var(--sp-8); }
+.assign-list { display: flex; flex-direction: column; gap: var(--sp-6); margin-top: var(--sp-8); }
+.assign-row { display: flex; align-items: center; gap: var(--sp-10); padding: var(--sp-8) var(--sp-10); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.assign-row-ico { flex: none; width: 26px; height: 26px; border-radius: var(--radius-pill); display: grid; place-items: center; background: var(--hover); color: var(--text-2); }
+.assign-row-name { flex: 1; min-width: 0; font-size: var(--fs-13); font-weight: var(--weight-medium); color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assign-row-qty { flex: none; font-size: var(--fs-12); color: var(--text-3); font-variant-numeric: tabular-nums; }
+.assign-note { padding: var(--sp-10); border-radius: var(--radius); background: var(--warn-bg); color: var(--warn-fg); font-size: var(--fs-12); margin-bottom: var(--sp-12); }
+
 /* ---- 3D / tactile feel ---- */
 .lift-card { transition: transform .14s var(--ease-out), box-shadow .14s var(--ease-out); }
 .lift-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
