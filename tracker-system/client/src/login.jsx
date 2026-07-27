@@ -35,7 +35,7 @@ export function LoginScreen({ onLogin }) {
           <label className="form-row">
             <span className="form-label">Work email</span>
             <input className={"input" + (err && !email ? " input-error" : "")} type="email" autoComplete="username"
-              placeholder="e.g. santosh@belgiumdia.com" value={email}
+              placeholder="e.g. santosh@tasksource.net" value={email}
               onChange={(e) => { setEmail(e.target.value); setErr(""); }} />
           </label>
           <label className="form-row">

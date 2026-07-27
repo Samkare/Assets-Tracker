@@ -17,7 +17,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Emails match the live accounts so renaming a user never spawns a seed duplicate.
 // phone left blank — set real extensions in the app (Users → Edit).
 const SEED_USERS = [
-  { name: "Santosh",  role: "Admin",      email: "santosh@belgiumdia.com",  since: "2021-03-15", phone: null, focus: "Fleet strategy, approvals & vendor management" },
+  { name: "Santosh",  role: "Admin",      email: "santosh@tasksource.net", since: "2021-03-15", phone: null, focus: "Fleet strategy, approvals & vendor management" },
   { name: "Sachin",   role: "IT-Manager", email: "smukati@tasksource.net",  since: "2022-07-04", phone: null, focus: "Provisioning, repairs & on-site support" },
   { name: "Mahendra", role: "IT-Manager", email: "mahendra@belgiumdia.com", since: "2023-01-19", phone: null, focus: "Asset intake, audits & peripheral kitting" }
 ];
