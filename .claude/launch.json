@@ -4,7 +4,7 @@
     {
       "name": "it-tracker-client",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev:client", "--prefix", "tracker-system"],
+      "runtimeArgs": ["run", "dev", "--prefix", "tracker-system"],
       "port": 5173
     }
   ]
