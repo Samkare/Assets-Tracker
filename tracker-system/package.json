@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
-    "dev:server": "node --watch server/src/index.js",
+    "dev:server": "cross-env PORT=3000 node --watch server/src/index.js",
     "dev:client": "npm run dev -w @its/client",
     "build": "npm run build -w @its/client",
     "migrate": "node server/src/db/migrate.js",
