@@ -636,7 +636,7 @@ function UserFormModal({ open, initial, onClose, onSubmit, isPending }) {
             <label className="form-row"><span className="form-label">Name</span>
               <input className="input" value={form.name} onChange={set("name")} placeholder="e.g. Santosh" /></label>
             <label className="form-row"><span className="form-label">Email</span>
-              <input className="input" type="email" value={form.email} onChange={set("email")} disabled={isEdit} placeholder="name@belgiumdia.com" autoComplete="off" /></label>
+              <input className="input" type="email" value={form.email} onChange={set("email")} disabled={isEdit} placeholder="name@tasksource.net" autoComplete="off" /></label>
           </div>
           <div className="form-cols">
             <label className="form-row"><span className="form-label">Role</span>

@@ -19,7 +19,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SEED_USERS = [
   { name: "Santosh",  role: "Admin",      email: "santosh@tasksource.net", since: "2021-03-15", phone: null, focus: "Fleet strategy, approvals & vendor management" },
   { name: "Sachin",   role: "IT-Manager", email: "smukati@tasksource.net",  since: "2022-07-04", phone: null, focus: "Provisioning, repairs & on-site support" },
-  { name: "Mahendra", role: "IT-Manager", email: "mahendra@belgiumdia.com", since: "2023-01-19", phone: null, focus: "Asset intake, audits & peripheral kitting" }
+  { name: "Mahendra", role: "IT-Manager", email: "mahendra@tasksource.net", since: "2023-01-19", phone: null, focus: "Asset intake, audits & peripheral kitting" }
 ];
 const SEED_USER_PASSWORD = "Welcome!2026"; // shared temp password, must_reset = 1
 

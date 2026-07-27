@@ -1,7 +1,7 @@
 // Reset an IT Asset Tracker user's password (run by an operator, not the agent).
 //
 //   cd "C:\IT Assets Tracker\tracker-system"
-//   node reset-admin-password.mjs finn@belgiumdia.com "YourNewPass123"
+//   node reset-admin-password.mjs finn@tasksource.net "YourNewPass123"
 //
 // Password policy: >= 10 chars, with at least one upper, one lower, and one digit.
 // Sets must_reset=1 so the user is forced to choose their own password on first login,

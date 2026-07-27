@@ -1,7 +1,7 @@
 // Change a user's login email and reset their password (run by an operator, not the agent).
 //
 //   cd "C:\IT Assets Tracker\tracker-system"
-//   node update-admin-email.mjs finnbelgium@gmail.com santosh@belgiumdia.com "YourNewPass123"
+//   node update-admin-email.mjs finnbelgium@gmail.com santosh@tasksource.net "YourNewPass123"
 //
 // Password policy: >= 10 chars, with at least one upper, one lower, and one digit.
 // Sets must_reset=1 so the user is forced to choose their own password on first login,
