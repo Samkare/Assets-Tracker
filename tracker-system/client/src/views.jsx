@@ -1,6 +1,6 @@
 // Task Source — table, drawer, modal, page views
 import React, { useState, useEffect, useRef } from "react";
-import { Icon, ICONS, typeIcon, Avatar, DeptBadge, PERIPHERALS, PeriphChips, MonitorCell, Field } from "./components.jsx";
+import { Icon, ICONS, typeIcon, Avatar, DeptBadge, PERIPHERALS, PeriphChips, MonitorCell, MonitorSerials, Field } from "./components.jsx";
 import { useAssetHistory, useRepairs, useOpenRepair, useTemplates, usePeripherals,
   useInventory, useAssignedItems, useAssignItem, useUnassignItem } from "./api/hooks.js";
 import { useFocusTrap } from "./useFocusTrap.js";
@@ -737,7 +737,7 @@ const COLDEFS = {
   cpu:        { label: "CPU", sortKey: "cpu", render: (a) => a.cpu || <span className="cell-muted">—</span> },
   ram:        { label: "RAM", sortKey: "ram", render: (a) => a.ram || <span className="cell-muted">—</span> },
   hdd:        { label: "HDD", sortKey: "hdd", render: (a) => a.hdd || <span className="cell-muted">—</span> },
-  monitors:   { label: "Monitors", sortKey: "monitors", render: (a) => <MonitorCell value={a.monitors} /> },
+  monitors:   { label: "Monitors", sortKey: "monitors", render: (a) => <MonitorSerials asset={a} /> },
   periph:     { label: "Peripherals", sortable: false, thClass: "th-periph", tdClass: "td-periph", render: (a) => <PeriphChips asset={a} /> },
 };
 const VIEW_COLUMNS = {

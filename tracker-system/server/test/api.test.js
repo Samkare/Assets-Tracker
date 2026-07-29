@@ -295,6 +295,7 @@ test("export: assets.xlsx excludes retired (soft-deleted) assets", async () => {
   await req("DELETE", "/api/assets/TS-EXPORT-GONE"); // soft-delete → status retired
   const res = await fetch(base + "/api/export/assets.xlsx", { headers: { ...XRW, Cookie: cookie } });
   assert.equal(res.status, 200);
+  assert.match(res.headers.get("cache-control") || "", /no-store/); // never served from cache
   const ExcelJS = (await import("exceljs")).default;
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(Buffer.from(await res.arrayBuffer()));

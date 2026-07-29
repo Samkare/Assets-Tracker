@@ -21,18 +21,27 @@ function stash(assets, userId) {
 }
 
 // --- Export (Viewer can export assets; audit export = IT-Manager) ---
+// Every export is built fresh from the live DB on each request. The no-store headers guarantee the
+// browser (and any proxy/CDN) never serves a cached copy — deleted/updated records must always be
+// current, so the download must never come from cache or a stale template.
+function setDownloadHeaders(res, filename) {
+  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+}
+
 router.get("/export/assets.xlsx", requireAuth, asyncHandler(async (req, res) => {
   const wb = await assetsWorkbook();
-  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", 'attachment; filename="assets.xlsx"');
+  setDownloadHeaders(res, "assets.xlsx");
   await wb.xlsx.write(res);
   res.end();
 }));
 
 router.get("/export/audit.xlsx", requireRole("IT-Manager"), asyncHandler(async (req, res) => {
   const wb = await auditWorkbook();
-  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", 'attachment; filename="audit-log.xlsx"');
+  setDownloadHeaders(res, "audit-log.xlsx");
   await wb.xlsx.write(res);
   res.end();
 }));
@@ -40,8 +49,7 @@ router.get("/export/audit.xlsx", requireRole("IT-Manager"), asyncHandler(async (
 // helper: stream any workbook as an .xlsx download
 const sendXlsx = (filename, builder) => asyncHandler(async (req, res) => {
   const wb = await builder();
-  res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  setDownloadHeaders(res, filename);
   await wb.xlsx.write(res);
   res.end();
 });

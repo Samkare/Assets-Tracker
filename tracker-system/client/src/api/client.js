@@ -37,5 +37,7 @@ export const api = {
     if (!res.ok) { const e = new Error(data.error || "upload failed"); e.status = res.status; throw e; }
     return data;
   },
-  download: (p) => { window.location.href = `/api${p}`; }
+  // Cache-bust every download so the browser can never re-serve a stale export from its cache
+  // (the no-store response headers are the primary guard; this makes each request a unique URL too).
+  download: (p) => { const sep = p.includes("?") ? "&" : "?"; window.location.href = `/api${p}${sep}_=${Date.now()}`; }
 };

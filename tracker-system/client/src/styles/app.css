@@ -198,6 +198,11 @@
   .mon-tag svg { color: var(--text-3); }
   .mon-dual { color: var(--accent); font-weight: var(--weight-semibold); }
   .mon-dual svg { color: var(--accent); }
+  /* Assigned-monitor serial list (Assets table Monitors column) */
+  .mon-serials { display: inline-flex; flex-direction: column; gap: var(--sp-4); }
+  .mon-serial { display: inline-flex; align-items: center; gap: var(--sp-6); white-space: nowrap; }
+  .mon-serial-tag { flex: none; font-size: var(--fs-11); font-weight: var(--weight-semibold); color: var(--accent); background: color-mix(in oklch, var(--accent) 12%, transparent); border-radius: var(--radius-sm, 4px); padding: 0 var(--sp-5); }
+  .mon-serial-sn { font-size: var(--fs-12); color: var(--text-2); }
 
   /* ---------- peripheral chips ---------- */
   .td-periph { white-space: nowrap; }
