@@ -4,8 +4,12 @@ import { rowToAsset } from "../db/repo.js";
 import { EXPORT_COLUMNS } from "../lib/columnMap.js";
 
 export async function assetsWorkbook() {
+  // Live DB export — must match the app's default asset view. Retired (soft-deleted) assets are
+  // excluded so deleted records never leak into the backup. Pass includeRetired via listAssets
+  // if a full historical dump is ever needed; the operator-facing Export is current records only.
   const rows = db.prepare(`
     SELECT a.*, d.name AS dept_name FROM assets a JOIN departments d ON d.id = a.department_id
+    WHERE a.status != 'retired'
     ORDER BY a.id`).all().map(rowToAsset);
 
   const wb = new ExcelJS.Workbook();

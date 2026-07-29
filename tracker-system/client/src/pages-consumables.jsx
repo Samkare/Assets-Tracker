@@ -27,6 +27,13 @@ function fmtTime(iso) {
   if (isNaN(d)) return "";
   return d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
+// Full stamp (with year) for the Stock Operations ledger, so weekly/monthly reports are unambiguous.
+function fmtStamp(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return d.toLocaleString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
 function useEsc(open, onClose) {
   useEffect(() => {
     if (!open) return;
@@ -1232,7 +1239,9 @@ const MOVE_TYPES = ["All", "in", "out", "return", "adjust"];
 
 function StockLogTab() {
   const [type, setType] = useState("All");
-  const { data: rows = [], isLoading } = useStockMovements(type === "All" ? {} : { type });
+  const [dir, setDir] = useState("desc"); // 'desc' = newest first, 'asc' = oldest first
+  const { data: rows = [], isLoading } = useStockMovements({ dir, ...(type === "All" ? {} : { type }) });
+  const toggleDir = () => setDir((d) => (d === "desc" ? "asc" : "desc"));
   return (
     <React.Fragment>
       <div className="inv-toolbar">
@@ -1242,14 +1251,19 @@ function StockLogTab() {
             onClick={() => setType(t)}>{t === "All" ? "All" : MOVE_LABEL[t]}</button>
         ))}
         <span className="inv-toolbar-spacer" />
-        <span className="cell-muted">{rows.length} entries</span>
+        <span className="cell-muted">{rows.length} entries · {dir === "desc" ? "newest first" : "oldest first"}</span>
       </div>
       <div className="table-card">
         {isLoading ? <div style={{ padding: "var(--sp-16)" }}><SkeletonTable rows={5} cols={6} /></div> :
          rows.length === 0 ? <div className="cell-muted" style={{ padding: "var(--sp-16)" }}>No stock movements yet.</div> : (
           <div className="table-scroll">
             <table className="data-table"><thead><tr>
-              <th><span className="th-plain">When</span></th>
+              <th>
+                <button type="button" className="th-btn th-active" onClick={toggleDir} title="Sort by transaction date">
+                  When
+                  <span className="sort-arrow sort-arrow-on" aria-hidden="true">{dir === "desc" ? "↓" : "↑"}</span>
+                </button>
+              </th>
               <th><span className="th-plain">Type</span></th>
               <th><span className="th-plain">Item</span></th>
               <th><span className="th-plain">Qty</span></th>
@@ -1264,7 +1278,7 @@ function StockLogTab() {
                               (m.reason || "");
                 return (
                   <tr key={m.id}>
-                    <td className="cell-muted">{fmtTime(m.at)}</td>
+                    <td className="cell-muted">{fmtStamp(m.at)}</td>
                     <td>
                       <span className="status-pill" data-s={m.type}>{MOVE_LABEL[m.type] || m.type}</span>
                       {m.condition === "defective" ? <span className="status-pill" data-s="defective" style={{ marginLeft: "var(--sp-6)" }}>Defective</span> : null}

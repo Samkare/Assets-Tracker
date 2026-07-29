@@ -241,18 +241,20 @@ export function adjust(id, b, actor) {
 }
 
 // Global movement log — every receive/issue/return/adjust across all items, newest first.
-export function listMovements({ type, itemId, defective, limit = 200 } = {}) {
+export function listMovements({ type, itemId, defective, dir, limit = 200 } = {}) {
   const where = [], p = { limit: Math.min(Number(limit) || 200, 1000) };
   if (type && type !== "All") { where.push("m.type = @type"); p.type = type; }
   if (itemId) { where.push("m.item_id = @itemId"); p.itemId = Number(itemId); }
   if (defective === "1" || defective === true) where.push("m.condition = 'defective'");
+  // Sort by transaction date; default newest-first. `dir=asc` gives oldest-first for period reports.
+  const order = String(dir).toLowerCase() === "asc" ? "ASC" : "DESC";
   const sql = `
     SELECT m.*, i.name AS item_name, i.unit AS item_unit, s.name AS supplier_name
     FROM stock_movements m
     JOIN consumables i ON i.id = m.item_id
     LEFT JOIN suppliers s ON s.id = m.supplier_id
     ${where.length ? "WHERE " + where.join(" AND ") : ""}
-    ORDER BY m.at DESC, m.id DESC LIMIT @limit`;
+    ORDER BY m.at ${order}, m.id ${order} LIMIT @limit`;
   return db.prepare(sql).all(p);
 }
 
@@ -290,8 +292,28 @@ export function adjustPeripheralStock(label, delta, { actor = "system", employee
   if (!label || !delta) return false;
   const item = db.prepare("SELECT * FROM consumables WHERE lower(trim(name)) = lower(trim(?)) ORDER BY id LIMIT 1").get(label);
   if (!item) return false;                        // no stock item for this peripheral
-  if (delta < 0 && item.qty < 1) return false;    // out of stock -> don't block the save
   const issue = delta < 0;
+
+  // Reconcile with the custody ledger so the peripheral checklist (this function) and the Asset
+  // Assignment tab (issue/returnFromAsset) can never double-count the same physical unit.
+  // `held` = net units of THIS stock item currently on THIS asset (issued − returned) via any path.
+  const held = assetId
+    ? db.prepare(
+        `SELECT COALESCE(SUM(CASE WHEN type='out' THEN qty WHEN type='return' THEN -qty ELSE 0 END),0) n
+         FROM stock_movements WHERE item_id = ? AND asset_id = ?`
+      ).get(item.id, assetId).n
+    : 0;
+
+  if (issue) {
+    if (assetId && held > 0) return false;        // already issued to this asset — don't create a duplicate out
+    if (item.qty < 1) return false;               // out of stock -> don't block the save
+  } else {
+    // Removing a peripheral only restocks a unit that was actually issued FROM stock to this asset.
+    // Imported/legacy peripherals were never drawn from the ledger (held = 0), so unticking them must
+    // NOT invent a phantom "return" that inflates stock.
+    if (assetId && held <= 0) return false;
+  }
+
   db.prepare("UPDATE consumables SET qty = ? WHERE id = ?").run(Math.max(0, item.qty + (issue ? -1 : 1)), item.id);
   db.prepare(`INSERT INTO stock_movements (item_id, type, qty, reason, employee_name, asset_id, actor, condition)
     VALUES (?,?,?,?,?,?,?,?)`).run(

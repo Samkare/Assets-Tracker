@@ -20,7 +20,7 @@
     "migrate": "node server/src/db/migrate.js",
     "seed": "node server/src/db/seed.js",
     "pretest": "node -e \"['./data/test.db','./data/test.db-wal','./data/test.db-shm'].forEach(f=>require('fs').rmSync(f,{force:true}))\"",
-    "test": "cross-env NODE_ENV=test DB_PATH=./data/test.db node --test --test-force-exit server/test/",
+    "test": "cross-env NODE_ENV=test DB_PATH=./data/test.db node --test --test-force-exit \"server/test/**/*.test.js\"",
     "start": "cross-env NODE_ENV=production node server/src/index.js",
     "backup": "node server/scripts/backup-db.js"
   },

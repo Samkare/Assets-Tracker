@@ -261,6 +261,52 @@ test("inventory: peripheral assignment is idempotent (no double-deduct, correct 
   await req("DELETE", "/api/assets/TS-PERIPH-REGRESSION");
 });
 
+test("inventory: removing a peripheral never issued from stock does not restock (no phantom return)", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  // asset gets the keyboard flag BEFORE any matching stock item exists → column set, no stock movement.
+  // This mimics imported/legacy assets whose peripherals were never drawn from the stock ledger.
+  await req("POST", "/api/assets", { id: "TS-IMPORTED-KB", pseudo: "Imported KB", dept: "Sales", type: "Desktop", keyboard: true });
+  const item = await req("POST", "/api/inventory", { name: "Keyboard", kind: "accessory", qty: 7, reorderLevel: 1, reorderQty: 5, unit: "pcs" });
+  assert.equal(item.status, 201);
+  // Un-ticking the keyboard must NOT invent a return that inflates stock (ledger custody = 0).
+  await req("PUT", "/api/assets/TS-IMPORTED-KB", { keyboard: false });
+  const stock = await req("GET", `/api/inventory/${item.data.id}`);
+  assert.equal(stock.data.qty, 7); // unchanged — no phantom +1
+  const moves = await req("GET", `/api/inventory/movements?itemId=${item.data.id}`);
+  assert.equal(moves.data.filter((m) => m.asset_id === "TS-IMPORTED-KB").length, 0); // no stray movement
+  await req("DELETE", "/api/assets/TS-IMPORTED-KB");
+});
+
+test("inventory: stock movements can be sorted by date ascending or descending", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const item = await req("POST", "/api/inventory", { name: "SortMe Cable", kind: "consumable", qty: 0, reorderLevel: 1, reorderQty: 5, unit: "pcs" });
+  const id = item.data.id;
+  await req("POST", `/api/inventory/${id}/receive`, { qty: 10 }); // earlier movement (in)
+  await req("POST", `/api/inventory/${id}/issue`, { qty: 2, reason: "t" }); // later movement (out)
+  const desc = await req("GET", `/api/inventory/movements?itemId=${id}&dir=desc`);
+  const asc  = await req("GET", `/api/inventory/movements?itemId=${id}&dir=asc`);
+  assert.equal(desc.data[0].type, "out"); // newest first
+  assert.equal(asc.data[0].type, "in");   // oldest first
+});
+
+test("export: assets.xlsx excludes retired (soft-deleted) assets", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  await req("POST", "/api/assets", { id: "TS-EXPORT-GONE", pseudo: "Ghost User", dept: "Sales", type: "Desktop" });
+  await req("DELETE", "/api/assets/TS-EXPORT-GONE"); // soft-delete → status retired
+  const res = await fetch(base + "/api/export/assets.xlsx", { headers: { ...XRW, Cookie: cookie } });
+  assert.equal(res.status, 200);
+  const ExcelJS = (await import("exceljs")).default;
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(Buffer.from(await res.arrayBuffer()));
+  const ws = wb.getWorksheet("FINAL Desktop Details");
+  let leaked = false;
+  ws.eachRow((row) => row.eachCell((c) => {
+    const v = String(c.value ?? "");
+    if (v.includes("TS-EXPORT-GONE") || v.includes("Ghost User")) leaked = true;
+  }));
+  assert.equal(leaked, false); // retired record must never appear in the export
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });
