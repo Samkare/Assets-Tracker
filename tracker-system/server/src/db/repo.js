@@ -34,10 +34,10 @@ export function insertAssetStrict(rec) {
   db.prepare(`
     INSERT INTO assets (id, pseudo, full_name, employee_id, shared, department_id, type, cpu, ram, hdd,
       mon1, mon2, monitors, headphone, speaker, keyboard, mouse, ip_phone, webcam, mobile_stand,
-      whatsapp, nextiva, return_due, status, updated_at)
+      whatsapp, nextiva, return_due, status, serial, updated_at)
     VALUES (@id, @pseudo, @full_name, @employee_id, @shared, @department_id, @type, @cpu, @ram, @hdd,
       @mon1, @mon2, @monitors, @headphone, @speaker, @keyboard, @mouse, @ip_phone, @webcam, @mobile_stand,
-      @whatsapp, @nextiva, @return_due, @status, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      @whatsapp, @nextiva, @return_due, @status, @serial, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
   `).run({
     id: rec.id, pseudo: rec.pseudo, full_name: rec.fullName ?? null, employee_id: empId, shared: rec.shared ? 1 : 0,
     department_id: deptId, type: rec.type, cpu: rec.cpu, ram: rec.ram, hdd: rec.hdd,
@@ -46,7 +46,8 @@ export function insertAssetStrict(rec) {
     keyboard: rec.keyboard ? 1 : 0, mouse: rec.mouse ? 1 : 0,
     ip_phone: rec.ipPhone ? 1 : 0, webcam: rec.webcam ? 1 : 0,
     mobile_stand: rec.mobileStand ? 1 : 0,
-    whatsapp: rec.whatsapp, nextiva: rec.nextiva, return_due: rec.returnDue ?? null, status: rec.status || "active"
+    whatsapp: rec.whatsapp, nextiva: rec.nextiva, return_due: rec.returnDue ?? null, status: rec.status || "active",
+    serial: rec.serial ?? null
   });
 }
 
@@ -57,10 +58,10 @@ export function upsertAsset(rec) {
   db.prepare(`
     INSERT INTO assets (id, pseudo, full_name, employee_id, shared, department_id, type, cpu, ram, hdd,
       mon1, mon2, monitors, headphone, speaker, keyboard, mouse, ip_phone, webcam, mobile_stand,
-      whatsapp, nextiva, return_due, status, updated_at)
+      whatsapp, nextiva, return_due, status, serial, updated_at)
     VALUES (@id, @pseudo, @full_name, @employee_id, @shared, @department_id, @type, @cpu, @ram, @hdd,
       @mon1, @mon2, @monitors, @headphone, @speaker, @keyboard, @mouse, @ip_phone, @webcam, @mobile_stand,
-      @whatsapp, @nextiva, @return_due, @status, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+      @whatsapp, @nextiva, @return_due, @status, @serial, strftime('%Y-%m-%dT%H:%M:%fZ','now'))
     ON CONFLICT(id) DO UPDATE SET
       pseudo=excluded.pseudo, full_name=excluded.full_name, employee_id=excluded.employee_id, shared=excluded.shared,
       department_id=excluded.department_id, type=excluded.type, cpu=excluded.cpu,
@@ -69,6 +70,7 @@ export function upsertAsset(rec) {
       keyboard=excluded.keyboard, mouse=excluded.mouse,
       ip_phone=excluded.ip_phone, webcam=excluded.webcam, mobile_stand=excluded.mobile_stand,
       whatsapp=excluded.whatsapp, nextiva=excluded.nextiva, return_due=excluded.return_due, status=excluded.status,
+      serial=excluded.serial,
       updated_at=strftime('%Y-%m-%dT%H:%M:%fZ','now')
   `).run({
     id: rec.id, pseudo: rec.pseudo, full_name: rec.fullName ?? null, employee_id: empId, shared: rec.shared ? 1 : 0,
@@ -78,7 +80,8 @@ export function upsertAsset(rec) {
     keyboard: rec.keyboard ? 1 : 0, mouse: rec.mouse ? 1 : 0,
     ip_phone: rec.ipPhone ? 1 : 0, webcam: rec.webcam ? 1 : 0,
     mobile_stand: rec.mobileStand ? 1 : 0,
-    whatsapp: rec.whatsapp, nextiva: rec.nextiva, return_due: rec.returnDue ?? null, status: rec.status || "active"
+    whatsapp: rec.whatsapp, nextiva: rec.nextiva, return_due: rec.returnDue ?? null, status: rec.status || "active",
+    serial: rec.serial ?? null
   });
 }
 
@@ -98,7 +101,7 @@ export function insertAssignment({ asset_id, employee_name, dept, action, actor,
 export function rowToAsset(r) {
   if (!r) return null;
   return {
-    id: r.id, pseudo: r.pseudo, fullName: r.full_name ?? null, shared: !!r.shared, dept: r.dept_name ?? r.dept,
+    id: r.id, pseudo: r.pseudo, fullName: r.full_name ?? null, serial: r.serial ?? null, shared: !!r.shared, dept: r.dept_name ?? r.dept,
     type: r.type, cpu: r.cpu, ram: r.ram, hdd: r.hdd, mon1: r.mon1, mon2: r.mon2,
     monitors: r.monitors,
     headphone: !!r.headphone, speaker: !!r.speaker, ipPhone: !!r.ip_phone,

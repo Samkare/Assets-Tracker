@@ -28,6 +28,7 @@ export function buildAsset(raw) {
     id: clean(raw.id),
     pseudo: shared ? SHARED_PSEUDO : String(raw.pseudo).trim(),
     fullName: clean(raw.fullName),
+    serial: clean(raw.serial),
     shared,
     dept: clean(raw.dept),
     type: raw.type || "Desktop",

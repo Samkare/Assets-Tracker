@@ -308,6 +308,24 @@ test("export: assets.xlsx excludes retired (soft-deleted) assets", async () => {
   assert.equal(leaked, false); // retired record must never appear in the export
 });
 
+test("asset: serial is stored as its own field, separate from full name", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const created = await req("POST", "/api/assets", {
+    id: "TS-LP-SERIAL", pseudo: "Laptop User", dept: "Sales", type: "Laptop",
+    fullName: "Laptop User Fullname", serial: "SN-ABC12345"
+  });
+  assert.equal(created.status, 201);
+  const got = await req("GET", "/api/assets/TS-LP-SERIAL");
+  assert.equal(got.data.serial, "SN-ABC12345");
+  assert.equal(got.data.fullName, "Laptop User Fullname"); // serial did NOT land in full name
+  // editing an unrelated field must preserve the serial (merge with the stored record)
+  await req("PUT", "/api/assets/TS-LP-SERIAL", { cpu: "i7 13th" });
+  const after = await req("GET", "/api/assets/TS-LP-SERIAL");
+  assert.equal(after.data.serial, "SN-ABC12345");
+  assert.equal(after.data.cpu, "i7 13th");
+  await req("DELETE", "/api/assets/TS-LP-SERIAL");
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });

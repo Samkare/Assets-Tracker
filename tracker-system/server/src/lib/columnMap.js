@@ -41,7 +41,8 @@ export const COLUMN_MAP = {
   // S = Status (export-only; import defaults to active). T/U/V appended so import round-trips them.
   T: { field: "fullName",    kind: "str" },
   U: { field: "keyboard",    kind: "bool" },
-  V: { field: "mouse",       kind: "bool" }
+  V: { field: "mouse",       kind: "bool" },
+  W: { field: "serial",      kind: "str" } // machine serial (laptops); appended so import round-trips it
 };
 
 // Export column order (A–R) for round-trip-safe xlsx export.
@@ -67,7 +68,8 @@ export const EXPORT_COLUMNS = [
   { header: "Status",            field: "status" },
   { header: "Full Name",         field: "fullName" },
   { header: "Keyboard",          field: "keyboard",    fmt: yn },
-  { header: "Mouse",             field: "mouse",       fmt: yn }
+  { header: "Mouse",             field: "mouse",       fmt: yn },
+  { header: "Serial No.",        field: "serial" }
 ];
 
 function yn(v) { return v ? "YES" : "NO"; }

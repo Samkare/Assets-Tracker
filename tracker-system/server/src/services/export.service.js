@@ -131,7 +131,7 @@ export async function xlsxToRows(buffer) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);
   const ws = wb.getWorksheet("FINAL Desktop Details") || wb.worksheets[0];
-  const cols = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V"];
+  const cols = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W"];
   const rows = [];
   ws.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return; // header

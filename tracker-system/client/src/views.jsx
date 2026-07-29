@@ -305,6 +305,7 @@ function DetailDrawer({ asset, onClose, onEdit, onRemove, canManage = false, isP
                 <Field label="Asset tag"><span className="mono asset-tag-val">{a.id}</span></Field>
                 <Field label="Full name">{a.fullName || <span className="cell-muted">—</span>}</Field>
                 <Field label="Type">{a.type}</Field>
+                <Field label="Serial">{a.serial ? <span className="mono">{a.serial}</span> : <span className="cell-muted">—</span>}</Field>
                 <Field label="CPU">{a.cpu || <span className="cell-muted">Not recorded</span>}</Field>
                 <Field label="RAM">{a.ram || <span className="cell-muted">—</span>}</Field>
                 <Field label="Storage">{a.hdd || <span className="cell-muted">—</span>}</Field>
@@ -475,7 +476,7 @@ function RecentChanges({ assetId, open }) {
 function AssignModal({ open, mode = "assign", initial, onClose, onSubmit, departments, types, assets = [], isPending = false }) {
   const blank = {
     pseudo: "", fullName: "", dept: departments[0], type: "Desktop", id: "",
-    cpu: "", ram: "", hdd: "", mon1: "", mon2: "",
+    cpu: "", ram: "", hdd: "", mon1: "", mon2: "", serial: "",
     headphone: false, speaker: false, ipPhone: false, webcam: false, mobileStand: false,
     keyboard: false, mouse: false,
     returnDue: "",
@@ -492,7 +493,7 @@ function AssignModal({ open, mode = "assign", initial, onClose, onSubmit, depart
         setForm({
           pseudo: initial.pseudo, fullName: initial.fullName || "", dept: initial.dept, type: initial.type, id: initial.id,
           cpu: initial.cpu || "", ram: initial.ram || "", hdd: initial.hdd || "",
-          mon1: initial.mon1 || "", mon2: initial.mon2 || "",
+          mon1: initial.mon1 || "", mon2: initial.mon2 || "", serial: initial.serial || "",
           headphone: !!initial.headphone, speaker: !!initial.speaker, ipPhone: !!initial.ipPhone,
           webcam: !!initial.webcam, mobileStand: !!initial.mobileStand,
           keyboard: !!initial.keyboard, mouse: !!initial.mouse,
@@ -645,6 +646,10 @@ function AssignModal({ open, mode = "assign", initial, onClose, onSubmit, depart
           <input className="input" placeholder="480 GB" value={form.hdd} onChange={set("hdd")} />
         </label>
       </div>
+      <label className="form-row">
+        <span className="form-label">{form.type === "Laptop" ? "Laptop serial" : "Machine serial"} <span className="form-optional">(shown in the Monitors column)</span></span>
+        <input className="input mono" placeholder="e.g. PW0K4E3F" value={form.serial} onChange={set("serial")} autoComplete="off" />
+      </label>
       <div className="form-cols">
         <div className="form-row">
           <span className="form-label">Monitor 1 serial</span>

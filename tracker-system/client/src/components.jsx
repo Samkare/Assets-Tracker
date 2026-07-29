@@ -128,17 +128,27 @@ export function MonitorCell({ value }) {
     </span>);
 }
 
-// Assigned-monitor list: labels each monitor M1/M2/… with its serial number. The serials live on
-// the asset (mon1/mon2), so this updates automatically whenever monitors are assigned/replaced/removed.
-// Falls back to "—" when no monitor is assigned. Kept consistent with the export (MONITOR-1/2 SN).
+// Machine + monitor identity for the Assets "Monitors" column. Shows the laptop serial first
+// (from asset.serial — laptops keep their serial here, not in Full Name), then each assigned
+// monitor labelled M1/M2/… with its serial (asset.mon1/mon2). Updates automatically whenever the
+// laptop or a monitor is assigned/replaced/removed. Falls back to "—" when neither exists.
+// Kept consistent with the export (Serial No. + MONITOR-1/2 SN columns).
 export function MonitorSerials({ asset }) {
-  const serials = [asset?.mon1, asset?.mon2]
+  const serial = asset?.serial == null ? "" : String(asset.serial).trim();
+  const monitors = [asset?.mon1, asset?.mon2]
     .map((s) => (s == null ? "" : String(s).trim()))
     .filter(Boolean);
-  if (!serials.length) return <span className="cell-muted">—</span>;
+  if (!serial && !monitors.length) return <span className="cell-muted">—</span>;
+  const serialLabel = asset?.type === "Laptop" ? "Laptop" : "Serial";
   return (
     <span className="mon-serials">
-      {serials.map((sn, i) => (
+      {serial ? (
+        <span className="mon-serial" title={`${serialLabel} · ${serial}`}>
+          <span className="mon-serial-tag mon-serial-tag-laptop">{serialLabel}</span>
+          <span className="mono mon-serial-sn">{serial}</span>
+        </span>
+      ) : null}
+      {monitors.map((sn, i) => (
         <span className="mon-serial" key={i} title={`Monitor ${i + 1} · ${sn}`}>
           <span className="mon-serial-tag">M{i + 1}</span>
           <span className="mono mon-serial-sn">{sn}</span>

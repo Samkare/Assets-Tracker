@@ -9,6 +9,7 @@ export const assetInputSchema = z.object({
   id: z.string().trim().min(1, "Asset tag required").max(40),
   pseudo: z.string().trim().max(80).nullable().optional(),
   fullName: z.string().trim().max(120).nullable().optional(),
+  serial: z.string().trim().max(120).nullable().optional(), // machine serial (esp. laptops); shown in the Monitors column
   dept: z.string().trim().min(1, "Department required").max(60),
   type: z.enum(ASSET_TYPES),
   cpu: optStr,
