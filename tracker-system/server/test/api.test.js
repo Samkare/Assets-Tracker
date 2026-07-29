@@ -353,6 +353,37 @@ test("asset: serial is stored as its own field, separate from full name", async 
   await req("DELETE", "/api/assets/TS-LP-SERIAL");
 });
 
+test("inventory: receive and assign can be backdated to the actual transaction date", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const item = await req("POST", "/api/inventory", { name: "Backdate Cable", kind: "consumable", qty: 0, reorderLevel: 1, reorderQty: 5, unit: "pcs" });
+  const id = item.data.id;
+
+  // receive: record the date the vendor actually delivered, not "now"
+  const rec = await req("POST", `/api/inventory/${id}/receive`, { qty: 10, at: "2026-01-05" });
+  assert.equal(rec.status, 200);
+  const afterReceive = await req("GET", `/api/inventory/movements?itemId=${id}`);
+  assert.match(afterReceive.data[0].at, /^2026-01-05/);
+
+  // assign-item (Asset Assignment tab): record the date the item was actually handed over
+  await req("POST", "/api/assets", { id: "TS-BACKDATE", pseudo: "Backdate User", dept: "Sales", type: "Desktop" });
+  const assign = await req("POST", "/api/assets/TS-BACKDATE/assign-item", { itemId: id, at: "2026-01-06" });
+  assert.equal(assign.status, 200);
+  const afterAssign = await req("GET", `/api/inventory/movements?itemId=${id}`);
+  assert.match(afterAssign.data[0].at, /^2026-01-06/);
+
+  // omitted date still defaults to now (unaffected callers keep working)
+  const now = await req("POST", `/api/inventory/${id}/issue`, { qty: 1, reason: "no date given" });
+  assert.equal(now.status, 200);
+
+  // reject a future date and an unparseable date
+  const future = await req("POST", `/api/inventory/${id}/receive`, { qty: 1, at: "2099-01-01" });
+  assert.equal(future.status, 400);
+  const bad = await req("POST", `/api/inventory/${id}/receive`, { qty: 1, at: "not-a-date" });
+  assert.equal(bad.status, 400);
+
+  await req("DELETE", "/api/assets/TS-BACKDATE");
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });

@@ -205,6 +205,7 @@
 .assign-pick { margin-bottom: var(--sp-16); }
 .assign-pick-row { display: flex; gap: var(--sp-8); margin-top: var(--sp-8); }
 .assign-pick-row .input { flex: 1; min-width: 0; }
+.assign-pick-row .assign-pick-date { flex: none; width: 152px; }
 .assign-plus, .assign-minus { flex: none; }
 .assign-held-title { margin-top: var(--sp-8); }
 .assign-list { display: flex; flex-direction: column; gap: var(--sp-6); margin-top: var(--sp-8); }

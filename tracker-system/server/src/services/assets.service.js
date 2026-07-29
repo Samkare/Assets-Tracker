@@ -286,7 +286,7 @@ export function assignItem(assetId, body, actor) {
   const qty = body?.qty == null ? 1 : Math.trunc(Number(body.qty));
   if (!qty || qty <= 0) throw new HttpError(400, "qty must be a positive integer");
   const employeeName = a.shared ? null : a.pseudo;
-  const item = issue(itemId, { qty, assetId, employeeName, reason: body?.note || `Assigned to ${employeeName || assetId}` }, actor);
+  const item = issue(itemId, { qty, assetId, employeeName, at: body?.at, reason: body?.note || `Assigned to ${employeeName || assetId}` }, actor);
   return { ok: true, asset: getAsset(assetId), item };
 }
 

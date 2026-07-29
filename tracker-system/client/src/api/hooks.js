@@ -111,7 +111,7 @@ function useAssignmentMutation(fn, opts) {
     onError: opts?.onError
   });
 }
-export const useAssignItem   = (o) => useAssignmentMutation(({ id, itemId, qty, note }) => api.post(`/assets/${id}/assign-item`, { itemId, qty, note }), o);
+export const useAssignItem   = (o) => useAssignmentMutation(({ id, itemId, qty, note, at }) => api.post(`/assets/${id}/assign-item`, { itemId, qty, note, at }), o);
 export const useUnassignItem = (o) => useAssignmentMutation(({ id, itemId, qty, destination, reason }) => api.post(`/assets/${id}/unassign-item`, { itemId, qty, destination, reason }), o);
 
 // --- repairs ---

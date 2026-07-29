@@ -20,6 +20,9 @@ export function initials(name) {
   return ((parts[0]?.[0] || "?") + (parts[1] ? parts[1][0] : "")).toUpperCase();
 }
 export function deptHue(dept) { return DEPT_HUE && DEPT_HUE[dept] != null ? DEPT_HUE[dept] : 240; }
+// Today as YYYY-MM-DD (local time), for defaulting <input type="date"> fields — e.g. the
+// "received on" / "assigned on" date pickers default to today but stay editable for backdating.
+export function todayStr() { return new Date().toLocaleDateString("en-CA"); }
 
 /* ---------- icons ---------- */
 export function Icon({ d, size = 16, ...rest }) {

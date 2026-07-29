@@ -1,6 +1,6 @@
 // Task Source — Inventory Management (stock, suppliers, categories, spare hardware)
 import React, { useState, useEffect, useRef } from "react";
-import { Icon, ICONS, FilterDropdown, Field, StatCard } from "./components.jsx";
+import { Icon, ICONS, FilterDropdown, Field, StatCard, todayStr } from "./components.jsx";
 import { api } from "./api/client.js";
 import { SkeletonTable, SkeletonTimeline } from "./Skeleton.jsx";
 import { useFocusTrap } from "./useFocusTrap.js";
@@ -196,7 +196,7 @@ function AutoComplete({ value, onChange, placeholder, options, getLabel, getSub,
 function StockActionForm({ action, suppliers, onCancel, onSubmit, isPending, error }) {
   const [form, setForm] = useState({
     qty: "", supplierId: "", employeeName: "", assetId: "", reason: "", delta: "",
-    defective: false, replacementOf: "",
+    defective: false, replacementOf: "", at: todayStr(),
   });
   // assets for autocomplete (only loaded when needed)
   const { data: assets = [] } = useAssets({}, action === "issue");
@@ -220,9 +220,9 @@ function StockActionForm({ action, suppliers, onCancel, onSubmit, isPending, err
     const n = Number(form.qty);
     if (!form.qty || isNaN(n) || n <= 0) return;
     if (action === "receive") {
-      onSubmit({ qty: n, supplierId: form.supplierId || null });
+      onSubmit({ qty: n, supplierId: form.supplierId || null, at: form.at || null });
     } else if (action === "issue") {
-      onSubmit({ qty: n, employeeName: form.employeeName.trim() || null, assetId: form.assetId.trim() || null, reason: form.reason.trim() || null, replacementOf: form.replacementOf ? Number(form.replacementOf) : null });
+      onSubmit({ qty: n, employeeName: form.employeeName.trim() || null, assetId: form.assetId.trim() || null, reason: form.reason.trim() || null, replacementOf: form.replacementOf ? Number(form.replacementOf) : null, at: form.at || null });
     } else if (action === "return") {
       onSubmit({ qty: n, reason: form.reason.trim() || null, condition: form.defective ? "defective" : "good", employeeName: form.employeeName.trim() || null });
     }
@@ -241,14 +241,18 @@ function StockActionForm({ action, suppliers, onCancel, onSubmit, isPending, err
           <div className="inv-action-row">
             <input className="input inv-action-num" type="number" min="1" placeholder="Qty" value={form.qty} onChange={set("qty")} autoFocus />
             {action === "receive" ? (
-              <React.Fragment>
-                <select className="input" value={form.supplierId} onChange={set("supplierId")}>
-                  <option value="">Supplier…</option>
-                  {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                </select>
-              </React.Fragment>
+              <select className="input" value={form.supplierId} onChange={set("supplierId")}>
+                <option value="">Supplier…</option>
+                {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
             ) : null}
           </div>
+          {(action === "receive" || action === "issue") ? (
+            <label className="inv-action-row" style={{ alignItems: "center", gap: "var(--sp-8)" }}>
+              <span className="form-label" style={{ flex: "none" }}>{action === "receive" ? "Received on" : "Assigned on"}</span>
+              <input className="input" type="date" max={todayStr()} value={form.at} onChange={set("at")} />
+            </label>
+          ) : null}
           {action === "issue" ? (
             <div className="inv-action-row">
               <AutoComplete value={form.employeeName} onChange={(v) => setForm({ ...form, employeeName: v })}

@@ -13,6 +13,19 @@ function assetPeripheralColumn(itemName) {
 const MOVE_ACTION = { in: "stock-in", out: "stock-out", return: "stock-return", adjust: "stock-adjust" };
 const MOVE_VERB   = { in: "Received", out: "Issued", return: "Returned", adjust: "Adjusted" };
 
+// Lets the operator record the ACTUAL date stock was received from a vendor or an item was
+// assigned/returned — not just "now" — so weekly/monthly reports reflect real transaction dates
+// (e.g. entering yesterday's delivery today). Accepts a date ("YYYY-MM-DD") or full ISO datetime;
+// missing/blank -> now. Rejects unparseable values and dates more than a day in the future
+// (a stock movement can't happen before it's recorded).
+function resolveMovementDate(at) {
+  if (at == null || at === "") return new Date().toISOString();
+  const d = new Date(at);
+  if (isNaN(d.getTime())) throw new HttpError(400, "Invalid date");
+  if (d.getTime() > Date.now() + 24 * 60 * 60 * 1000) throw new HttpError(400, "Date can't be in the future");
+  return d.toISOString();
+}
+
 const SELECT = `
   SELECT i.*, c.name AS category_name, s.name AS supplier_name
   FROM consumables i
@@ -103,12 +116,13 @@ export function deleteItem(id) {
 }
 
 // --- stock movements (each updates qty + logs in one transaction) ---
-function move(id, { type, qty, reason, employeeName, assetId, supplierId, unitCost, condition, replacementOf }, actor) {
+function move(id, { type, qty, reason, employeeName, assetId, supplierId, unitCost, condition, replacementOf, at }, actor) {
   const item = db.prepare("SELECT * FROM consumables WHERE id=?").get(id);
   if (!item) throw new HttpError(404, "Item not found");
   const n = Math.trunc(Number(qty));
   if (!n || n <= 0) throw new HttpError(400, "Quantity must be a positive number");
   const delta = (type === "in" || type === "return") ? n : -n;
+  const ts = resolveMovementDate(at);
   const cond = condition === "defective" ? "defective" : condition === "good" ? "good" : null;
   const repOf = replacementOf ? Number(replacementOf) : null;
   // CRIT-5: validate replacement target — must be a defective return on the SAME item, not yet replaced
@@ -153,10 +167,10 @@ function move(id, { type, qty, reason, employeeName, assetId, supplierId, unitCo
       db.prepare("UPDATE consumables SET unit_cost = ? WHERE id = ?").run(Math.round(blended * 100) / 100, id);
     }
     const info = db.prepare(`INSERT INTO stock_movements
-      (item_id, type, qty, reason, employee_name, asset_id, supplier_id, unit_cost, actor, condition, replacement_of)
-      VALUES (?,?,?,?,?,?,?,?,?,?,?)`).run(
+      (item_id, type, qty, reason, employee_name, asset_id, supplier_id, unit_cost, actor, condition, replacement_of, at)
+      VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run(
       id, type, n, reason ?? null, employeeName ?? null, assetId ?? null,
-      supplierId ?? null, unitCost != null && unitCost !== "" ? Number(unitCost) : null, actor, cond, repOf);
+      supplierId ?? null, unitCost != null && unitCost !== "" ? Number(unitCost) : null, actor, cond, repOf, ts);
     movementId = info.lastInsertRowid;
     // CRIT-5: guarded back-link — atomic; cannot double-link
     if (repOf) {

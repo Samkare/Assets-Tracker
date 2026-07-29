@@ -1,6 +1,6 @@
 // Task Source — table, drawer, modal, page views
 import React, { useState, useEffect, useRef } from "react";
-import { Icon, ICONS, typeIcon, Avatar, DeptBadge, PERIPHERALS, PeriphChips, MonitorCell, MonitorSerials, Field } from "./components.jsx";
+import { Icon, ICONS, typeIcon, Avatar, DeptBadge, PERIPHERALS, PeriphChips, MonitorCell, MonitorSerials, Field, todayStr } from "./components.jsx";
 import { useAssetHistory, useRepairs, useOpenRepair, useTemplates, usePeripherals,
   useInventory, useAssignedItems, useAssignItem, useUnassignItem } from "./api/hooks.js";
 import { useFocusTrap } from "./useFocusTrap.js";
@@ -178,11 +178,12 @@ function AssetAssignmentTab({ a, canManage }) {
   const { data: assigned = [], isLoading } = useAssignedItems(a.id);
   const { data: stock = [] } = useInventory({}, canManage);
   const [pick, setPick] = useState("");
+  const [assignDate, setAssignDate] = useState(todayStr());
   const [returning, setReturning] = useState(null); // the held-item row being returned
   const retired = a.status === "retired";
 
   const assignM = useAssignItem({
-    onSuccess: (r) => { setPick(""); showToast(`Assigned ${r?.item?.name || "item"} to ${a.shared ? "shared PC" : a.pseudo}`, "success"); },
+    onSuccess: (r) => { setPick(""); setAssignDate(todayStr()); showToast(`Assigned ${r?.item?.name || "item"} to ${a.shared ? "shared PC" : a.pseudo}`, "success"); },
     onError: (e) => showToast(e.message || "Couldn’t assign item", "error"),
   });
   const unassignM = useUnassignItem({
@@ -191,7 +192,7 @@ function AssetAssignmentTab({ a, canManage }) {
   });
 
   const options = (stock || []).filter((s) => (s.qty || 0) > 0); // live, in-stock items only
-  const doAssign = () => { if (pick) assignM.mutate({ id: a.id, itemId: Number(pick) }); };
+  const doAssign = () => { if (pick) assignM.mutate({ id: a.id, itemId: Number(pick), at: assignDate || null }); };
   const confirmReturn = (destination, reason) =>
     unassignM.mutate({ id: a.id, itemId: returning.itemId, destination, reason });
 
@@ -210,6 +211,9 @@ function AssetAssignmentTab({ a, canManage }) {
                 <option key={s.id} value={s.id}>{s.name} · {s.qty} in stock{s.low ? " (low)" : ""}</option>
               ))}
             </select>
+            <input className="input assign-pick-date" type="date" max={todayStr()} value={assignDate}
+              onChange={(e) => setAssignDate(e.target.value)} disabled={assignM.isPending}
+              aria-label="Date assigned" title="Date assigned" />
             <button type="button" className="btn btn-primary assign-plus" onClick={doAssign}
               disabled={!pick || assignM.isPending} aria-label="Assign selected item">
               <Icon d={ICONS.plus} size={14} /> Assign
