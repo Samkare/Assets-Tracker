@@ -74,6 +74,44 @@ export const EXPORT_COLUMNS = [
 
 function yn(v) { return v ? "YES" : "NO"; }
 
+// One-cell "Monitors" text matching the on-screen Assets column: the machine serial first
+// (Laptop: … for laptops, Serial: … otherwise), then each monitor serial as M1/M2. Multi-line.
+export function monitorsText(a) {
+  const lines = [];
+  const serial = a?.serial == null ? "" : String(a.serial).trim();
+  if (serial) lines.push(`${a?.type === "Laptop" ? "Laptop" : "Serial"}: ${serial}`);
+  const m1 = a?.mon1 == null ? "" : String(a.mon1).trim();
+  const m2 = a?.mon2 == null ? "" : String(a.mon2).trim();
+  if (m1) lines.push(`M1: ${m1}`);
+  if (m2) lines.push(`M2: ${m2}`);
+  return lines.join("\n");
+}
+
+// Human-readable asset export (the "Export" backup). Unlike EXPORT_COLUMNS (the round-trip import
+// template), this collapses the machine serial + both monitor serials into ONE "Monitors" column
+// that mirrors the on-screen Assets table. Each entry pulls from the rowToAsset() shape.
+export const ASSET_EXPORT_COLUMNS = [
+  { header: "Department",   value: (a) => a.dept ?? "" },
+  { header: "Pseudo Name",  value: (a) => a.pseudo ?? "" },
+  { header: "D/L",          value: (a) => (a.type ? String(a.type).toUpperCase() : "") },
+  { header: "Asset Tag",    value: (a) => a.id ?? "" },
+  { header: "CPU",          value: (a) => a.cpu ?? "" },
+  { header: "RAM",          value: (a) => a.ram ?? "" },
+  { header: "HDD",          value: (a) => a.hdd ?? "" },
+  { header: "Monitors",     value: (a) => monitorsText(a) },
+  { header: "HeadPhone",    value: (a) => yn(a.headphone) },
+  { header: "Speaker",      value: (a) => yn(a.speaker) },
+  { header: "IP Phone",     value: (a) => yn(a.ipPhone) },
+  { header: "WhatsApp No.", value: (a) => a.whatsapp ?? "" },
+  { header: "Nextiva No.",  value: (a) => a.nextiva ?? "" },
+  { header: "Web Cam",      value: (a) => yn(a.webcam) },
+  { header: "Mobile Stand", value: (a) => yn(a.mobileStand) },
+  { header: "Status",       value: (a) => a.status ?? "" },
+  { header: "Full Name",    value: (a) => a.fullName ?? "" },
+  { header: "Keyboard",     value: (a) => yn(a.keyboard) },
+  { header: "Mouse",        value: (a) => yn(a.mouse) }
+];
+
 const isYes = (v) => /^y(es)?$/i.test(String(v ?? "").trim());
 
 function normType(v) {

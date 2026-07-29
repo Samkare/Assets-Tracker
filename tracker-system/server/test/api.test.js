@@ -308,6 +308,33 @@ test("export: assets.xlsx excludes retired (soft-deleted) assets", async () => {
   assert.equal(leaked, false); // retired record must never appear in the export
 });
 
+test("export: laptop serial + monitors are combined into one Monitors column", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  await req("POST", "/api/assets", { id: "TS-LP-EXP", pseudo: "Lap Exp", dept: "Sales", type: "Laptop", serial: "LP-SER-999" });
+  await req("POST", "/api/assets", { id: "TS-DT-EXP", pseudo: "Desk Exp", dept: "Sales", type: "Desktop", mon1: "MON-AAA", mon2: "MON-BBB" });
+  const res = await fetch(base + "/api/export/assets.xlsx", { headers: { ...XRW, Cookie: cookie } });
+  const ExcelJS = (await import("exceljs")).default;
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(Buffer.from(await res.arrayBuffer()));
+  const ws = wb.getWorksheet("FINAL Desktop Details");
+  const headers = ws.getRow(1).values.map((v) => String(v ?? ""));
+  const monCol = headers.indexOf("Monitors");
+  assert.ok(monCol > 0, "Monitors column exists");
+  assert.equal(headers.includes("MONITOR-1 SN"), false); // separate monitor columns are gone
+  assert.equal(headers.includes("Serial No."), false);   // serial folded into Monitors
+  const cellFor = (tag) => {
+    let out = null;
+    ws.eachRow((row, n) => { if (n > 1 && String(row.getCell(4).value || "") === tag) out = String(row.getCell(monCol).value || ""); });
+    return out;
+  };
+  assert.match(cellFor("TS-LP-EXP"), /Laptop: LP-SER-999/);
+  const dt = cellFor("TS-DT-EXP");
+  assert.match(dt, /M1: MON-AAA/);
+  assert.match(dt, /M2: MON-BBB/);
+  await req("DELETE", "/api/assets/TS-LP-EXP");
+  await req("DELETE", "/api/assets/TS-DT-EXP");
+});
+
 test("asset: serial is stored as its own field, separate from full name", async () => {
   await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
   const created = await req("POST", "/api/assets", {

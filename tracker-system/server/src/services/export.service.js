@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import db from "../db/connection.js";
 import { rowToAsset } from "../db/repo.js";
-import { EXPORT_COLUMNS } from "../lib/columnMap.js";
+import { EXPORT_COLUMNS, ASSET_EXPORT_COLUMNS } from "../lib/columnMap.js";
 
 export async function assetsWorkbook() {
   // Live DB export — must match the app's default asset view. Retired (soft-deleted) assets are
@@ -15,16 +15,16 @@ export async function assetsWorkbook() {
   const wb = new ExcelJS.Workbook();
   wb.creator = "IT Asset Tracker";
   const ws = wb.addWorksheet("FINAL Desktop Details");
-  ws.addRow(EXPORT_COLUMNS.map((c) => c.header));
+  ws.addRow(ASSET_EXPORT_COLUMNS.map((c) => c.header));
   ws.getRow(1).font = { bold: true };
-  for (const a of rows) {
-    ws.addRow(EXPORT_COLUMNS.map((c) => {
-      if (c.field === "_blank") return "";
-      const v = a[c.field];
-      return c.fmt ? c.fmt(v) : (v ?? "");
-    }));
-  }
+  for (const a of rows) ws.addRow(ASSET_EXPORT_COLUMNS.map((c) => c.value(a)));
   ws.columns.forEach((col) => { col.width = 16; });
+  // Widen + wrap the combined Monitors column so the multi-line "Laptop / M1 / M2" text is readable.
+  const monIdx = ASSET_EXPORT_COLUMNS.findIndex((c) => c.header === "Monitors") + 1;
+  if (monIdx > 0) {
+    ws.getColumn(monIdx).width = 30;
+    ws.getColumn(monIdx).alignment = { wrapText: true, vertical: "top" };
+  }
   return wb;
 }
 
