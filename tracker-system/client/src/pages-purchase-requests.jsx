@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { Icon, ICONS, DeptBadge, Field } from "./components.jsx";
 import {
-  usePurchaseRequests, useCreatePurchaseRequest, useSetPRStatus, useDeletePurchaseRequest, usePurchaseOrders
+  usePurchaseRequests, useCreatePurchaseRequest, useSetPRStatus, useDeletePurchaseRequest, usePurchaseOrders,
+  useUploadPRAttachment, useDeletePRAttachment
 } from "./api/hooks.js";
+import { api } from "./api/client.js";
 import { SkeletonTable } from "./Skeleton.jsx";
 import { useToast } from "./toasts.jsx";
 import { useConfirm } from "./confirm.jsx";
@@ -35,8 +37,42 @@ function fmtMoney(v) {
   if (v == null || v === "") return "—";
   return "₹" + Number(v).toLocaleString("en-IN");
 }
+function fmtBytes(b) { if (b == null) return ""; return b < 1024 ? b + " B" : (b / 1024).toFixed(1) + " KB"; }
 
 const FILTERS = ["All", "Pending", "Approved", "Rejected"];
+
+/* ---------- attachments manager (e.g. the signed/approved document) — mirrors the PO panel ---------- */
+function PRAttachmentsPanel({ pr, canManage }) {
+  const { showToast } = useToast();
+  const up = useUploadPRAttachment(pr.id, { onSuccess: () => showToast("Attachment added", "success"), onError: (e) => showToast(e.message, "error") });
+  const del = useDeletePRAttachment({ onSuccess: () => showToast("Attachment removed", "success"), onError: (e) => showToast(e.message, "error") });
+  const onFile = (e) => { const f = e.target.files && e.target.files[0]; if (f) up.mutate(f); e.target.value = ""; };
+  const list = pr.attachments || [];
+  return (
+    <div style={{ marginTop: "var(--sp-14)" }}>
+      <div className="field-label">Attachments</div>
+      {list.length === 0 ? <div className="cell-muted" style={{ marginTop: 4 }}>None yet.</div> : (
+        <ul style={{ listStyle: "none", padding: 0, margin: "4px 0 0" }}>
+          {list.map((a) => (
+            <li key={a.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0" }}>
+              <Icon d={ICONS.template} size={13} />
+              <button type="button" onClick={() => api.download(`/purchase-requests/attachments/${a.id}`)}
+                style={{ background: "none", border: "none", color: "var(--accent)", cursor: "pointer", textDecoration: "underline", padding: 0 }}>{a.filename}</button>
+              <span className="cell-muted">{fmtBytes(a.size)}</span>
+              {canManage ? <button type="button" className="icon-btn" onClick={() => del.mutate(a.id)} aria-label="Remove attachment"><Icon d={ICONS.close} size={12} /></button> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+      {canManage ? (
+        <label className="btn btn-secondary btn-sm" style={{ marginTop: "var(--sp-8)", cursor: "pointer" }}>
+          <Icon d={ICONS.upload} size={12} /> {up.isPending ? "Uploading…" : "Attach file"}
+          <input type="file" hidden onChange={onFile} disabled={up.isPending} />
+        </label>
+      ) : null}
+    </div>
+  );
+}
 
 /* ---------- create form ---------- */
 function NewRequestForm({ onClose }) {
@@ -175,6 +211,8 @@ function PRDetailModal({ pr, canAdmin, canManage, activePos = [], onGeneratePO, 
           <div className="field-value" style={{ whiteSpace: "pre-wrap", marginTop: 4 }}>{pr.businessPurpose}</div>
         </div>
 
+        <PRAttachmentsPanel pr={pr} canManage={canManage} />
+
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", alignItems: "center", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
           {pr.status === "Pending" && canAdmin ? (
             <React.Fragment>
@@ -302,7 +340,12 @@ function PurchaseRequestsPage({ canManage, canAdmin, initialFilter }) {
       )}
 
       {selected ? (
-        <PRDetailModal pr={selected} canAdmin={canAdmin} canManage={canManage}
+        <PRDetailModal
+          // Re-derive from the live list by id so attachment/status changes (which invalidate the
+          // ["purchase-requests"] query) show up immediately without closing and reopening the modal.
+          // Falls back to the originally-clicked row if it's fallen out of the current status filter.
+          pr={rows.find((r) => r.id === selected.id) || selected}
+          canAdmin={canAdmin} canManage={canManage}
           activePos={activePosByPr[selected.id] || []}
           onGeneratePO={(pr) => { setSelected(null); setGeneratingFor(pr); }}
           onClose={() => setSelected(null)} />

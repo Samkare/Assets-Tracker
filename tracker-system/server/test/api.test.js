@@ -425,6 +425,69 @@ test("departments: renaming to a name already in use returns a clear 409, not a 
   assert.match(clash.data.error || JSON.stringify(clash.data), /already exists/);
 });
 
+test("purchase requests: attach, download, and remove a document (e.g. the signed PR)", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const pr = await req("POST", "/api/purchase-requests", {
+    department: "Sales", category: "IT Consumable", businessPurpose: "Test attachment flow"
+  });
+  assert.equal(pr.status, 201);
+  const prId = pr.data.id;
+
+  // fresh PR has no attachments
+  const before = await req("GET", `/api/purchase-requests/${prId}`);
+  assert.deepEqual(before.data.attachments, []);
+
+  // upload
+  const content = "signed-pr-file-contents";
+  const form = new FormData();
+  form.append("file", new Blob([content], { type: "application/pdf" }), "signed-pr.pdf");
+  const up = await fetch(base + `/api/purchase-requests/${prId}/attachments`, {
+    method: "POST", headers: { "X-Requested-With": "XMLHttpRequest", Cookie: cookie }, body: form
+  });
+  assert.equal(up.status, 201);
+  const list = await up.json();
+  assert.equal(list.length, 1);
+  assert.equal(list[0].filename, "signed-pr.pdf");
+  const aid = list[0].id;
+
+  // shows up on the PR detail fetch too (list route batches the same way)
+  const after = await req("GET", `/api/purchase-requests/${prId}`);
+  assert.equal(after.data.attachments.length, 1);
+
+  // download returns the exact original bytes + filename
+  const dl = await fetch(base + `/api/purchase-requests/attachments/${aid}`, { headers: { Cookie: cookie } });
+  assert.equal(dl.status, 200);
+  assert.match(dl.headers.get("content-disposition") || "", /signed-pr\.pdf/);
+  assert.equal(await dl.text(), content);
+
+  // delete removes it
+  const del = await req("DELETE", `/api/purchase-requests/attachments/${aid}`);
+  assert.equal(del.status, 200);
+  const afterDelete = await req("GET", `/api/purchase-requests/${prId}`);
+  assert.deepEqual(afterDelete.data.attachments, []);
+  const gone = await fetch(base + `/api/purchase-requests/attachments/${aid}`, { headers: { Cookie: cookie } });
+  assert.equal(gone.status, 404);
+});
+
+test("purchase requests: deleting a PR cleans up its attachment file", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const pr = await req("POST", "/api/purchase-requests", {
+    department: "Sales", category: "IT Consumable", businessPurpose: "Delete cascade test"
+  });
+  const prId = pr.data.id;
+  const form = new FormData();
+  form.append("file", new Blob(["x"], { type: "application/pdf" }), "note.pdf");
+  const up = await fetch(base + `/api/purchase-requests/${prId}/attachments`, {
+    method: "POST", headers: { "X-Requested-With": "XMLHttpRequest", Cookie: cookie }, body: form
+  });
+  const aid = (await up.json())[0].id;
+  await req("PATCH", `/api/purchase-requests/${prId}/status`, { status: "Rejected" }); // deletable state
+  const del = await req("DELETE", `/api/purchase-requests/${prId}`);
+  assert.equal(del.status, 200);
+  const gone = await fetch(base + `/api/purchase-requests/attachments/${aid}`, { headers: { Cookie: cookie } });
+  assert.equal(gone.status, 404); // DB row (and the route's unlink) both cleaned up
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });

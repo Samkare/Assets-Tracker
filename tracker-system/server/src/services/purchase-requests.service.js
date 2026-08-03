@@ -40,6 +40,25 @@ function nextPrNumber() {
   return `${prefix}${String(seq).padStart(3, "0")}`; // PR-Jul-2026-001 … -999 … -1000
 }
 
+// batch: { prId: [...] } for a set of PR ids — avoids N+1 when attaching to a list of rows
+// (same pattern as peripheralsByAsset in peripherals.service.js).
+function attachmentsByPR(prIds) {
+  const out = {};
+  if (!prIds.length) return out;
+  const placeholders = prIds.map(() => "?").join(",");
+  const rows = db.prepare(
+    `SELECT id, pr_id, filename, mime, size, uploaded_by, uploaded_at
+     FROM purchase_request_attachments WHERE pr_id IN (${placeholders}) ORDER BY id`
+  ).all(...prIds);
+  for (const r of rows) {
+    (out[r.pr_id] = out[r.pr_id] || []).push({
+      id: r.id, filename: r.filename, mime: r.mime, size: r.size,
+      uploadedBy: r.uploaded_by, uploadedAt: r.uploaded_at
+    });
+  }
+  return out;
+}
+
 export function listPurchaseRequests({ status, department, category, q } = {}) {
   const where = [];
   const params = {};
@@ -53,11 +72,16 @@ export function listPurchaseRequests({ status, department, category, q } = {}) {
   const sql = `SELECT * FROM purchase_requests
     ${where.length ? "WHERE " + where.join(" AND ") : ""}
     ORDER BY (status = 'Pending') DESC, created_at DESC`;
-  return db.prepare(sql).all(params).map(rowToPR);
+  const list = db.prepare(sql).all(params).map(rowToPR);
+  const map = attachmentsByPR(list.map((r) => r.id));
+  for (const r of list) r.attachments = map[r.id] || [];
+  return list;
 }
 
 export function getPurchaseRequest(id) {
-  return rowToPR(db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(id));
+  const pr = rowToPR(db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(id));
+  if (pr) pr.attachments = attachmentsByPR([id])[id] || [];
+  return pr;
 }
 
 // input: already Zod-validated in the route, with requestedBy forced to the session user.
@@ -139,14 +163,53 @@ export function setPurchaseRequestStatus(id, status, actor) {
   return getPurchaseRequest(id);
 }
 
+// Returns storedNames so the route can unlink the attachment files (DB rows cascade automatically).
 export function deletePurchaseRequest(id, actor) {
   const existing = db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(id);
   if (!existing) throw new HttpError(404, "Purchase request not found");
-  db.prepare("DELETE FROM purchase_requests WHERE id = ?").run(id);
+  const storedNames = db.prepare("SELECT stored_name FROM purchase_request_attachments WHERE pr_id = ?")
+    .all(id).map((r) => r.stored_name);
+  db.prepare("DELETE FROM purchase_requests WHERE id = ?").run(id); // attachments cascade
   insertAudit({
     actor, action: "removed", tag: existing.pr_number,
     subject: existing.requested_by, dept: existing.department,
     detail: `PR deleted (was ${existing.status})`
   });
-  return { ok: true };
+  return { ok: true, storedNames };
+}
+
+/* ---------- attachments (e.g. the signed/approved document, vendor quote) ---------- */
+export function addAttachment(prId, file, actor) {
+  const pr = db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(prId);
+  if (!pr) throw new HttpError(404, "Purchase request not found");
+  db.prepare(
+    "INSERT INTO purchase_request_attachments (pr_id, filename, stored_name, mime, size, uploaded_by) VALUES (?,?,?,?,?,?)"
+  ).run(prId, file.filename, file.storedName, file.mime, file.size, actor);
+  insertAudit({
+    actor, action: "edited", tag: pr.pr_number,
+    subject: pr.requested_by, dept: pr.department,
+    detail: `Attachment added: ${file.filename}`
+  });
+  return attachmentsByPR([prId])[prId] || [];
+}
+
+export function getAttachmentForDownload(attachmentId) {
+  return db.prepare(
+    "SELECT id, pr_id, filename, stored_name, mime FROM purchase_request_attachments WHERE id = ?"
+  ).get(attachmentId);
+}
+
+export function deleteAttachment(attachmentId, actor) {
+  const a = db.prepare(
+    "SELECT a.*, pr.pr_number, pr.department, pr.requested_by FROM purchase_request_attachments a " +
+    "JOIN purchase_requests pr ON pr.id = a.pr_id WHERE a.id = ?"
+  ).get(attachmentId);
+  if (!a) throw new HttpError(404, "Attachment not found");
+  db.prepare("DELETE FROM purchase_request_attachments WHERE id = ?").run(attachmentId);
+  insertAudit({
+    actor, action: "edited", tag: a.pr_number,
+    subject: a.requested_by, dept: a.department,
+    detail: `Attachment removed: ${a.filename}`
+  });
+  return { storedName: a.stored_name };
 }

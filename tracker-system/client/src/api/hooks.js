@@ -313,6 +313,15 @@ function usePRMutation(fn, opts) {
 export const useCreatePurchaseRequest = (o) => usePRMutation((b) => api.post("/purchase-requests", b), o);
 export const useUpdatePurchaseRequest = (o) => usePRMutation(({ id, input }) => api.put(`/purchase-requests/${id}`, input), o);
 export const useSetPRStatus           = (o) => usePRMutation(({ id, status }) => api.patch(`/purchase-requests/${id}/status`, { status }), o);
+export function useUploadPRAttachment(prId, opts) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file) => api.upload(`/purchase-requests/${prId}/attachments`, file),
+    onSuccess: (...a) => { qc.invalidateQueries({ queryKey: ["purchase-requests"] }); opts?.onSuccess?.(...a); },
+    onError: opts?.onError
+  });
+}
+export const useDeletePRAttachment = (o) => usePRMutation((aid) => api.del(`/purchase-requests/attachments/${aid}`), o);
 export const useDeletePurchaseRequest = (o) => usePRMutation((id) => api.del(`/purchase-requests/${id}`), o);
 
 // === Purchase Orders (PO module) ===
