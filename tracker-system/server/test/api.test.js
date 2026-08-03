@@ -488,6 +488,27 @@ test("purchase requests: deleting a PR cleans up its attachment file", async () 
   assert.equal(gone.status, 404); // DB row (and the route's unlink) both cleaned up
 });
 
+test("purchase requests: IT-Manager can approve/reject (not Admin-only), but cannot delete", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const pr = await req("POST", "/api/purchase-requests", {
+    department: "Sales", category: "IT Consumable", businessPurpose: "IT-Manager approval test"
+  });
+  const prId = pr.data.id;
+
+  const made = await req("POST", "/api/users", { name: "Itm", email: "itm@t.io", role: "IT-Manager", password: "ItManagerPass1" });
+  assert.equal(made.status, 201);
+  await req("POST", "/api/auth/login", { email: "itm@t.io", password: "ItManagerPass1" });
+
+  const approve = await req("PATCH", `/api/purchase-requests/${prId}/status`, { status: "Approved" });
+  assert.equal(approve.status, 200); // IT-Manager can approve — used to be Admin-only
+  assert.equal(approve.data.status, "Approved");
+
+  const del = await req("DELETE", `/api/purchase-requests/${prId}`);
+  assert.equal(del.status, 403); // deletion stays Admin-only
+
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" }); // restore admin session
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });

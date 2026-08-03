@@ -65,8 +65,9 @@ export const PR_STATUSES = ["Pending", "Approved", "Rejected"];
 
 // Purchase Order module — PO lifecycle statuses + company address defaults.
 export const PO_STATUSES = ["Draft", "Sent to Vendor", "Fulfilled", "Cancelled"];
-// Pre-filled into the PO form; edit to your real registered address when ready.
+// Pre-filled into the PO form.
+const COMPANY_ADDRESS = "Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011";
 export const COMPANY_DEFAULTS = {
-  billingAddress:  "Task Source HQ, Main Office",
-  shippingAddress: "Task Source HQ, Main Office"
+  billingAddress:  COMPANY_ADDRESS,
+  shippingAddress: COMPANY_ADDRESS
 };

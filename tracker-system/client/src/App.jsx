@@ -442,7 +442,7 @@ export default function App() {
                   page === "Stock Overview" ?
                     <InventoryPage /> :
                   page === "Purchase Requests" ?
-                    <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} initialFilter={procFilter} /> :
+                    <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} canApprove={canManage} initialFilter={procFilter} /> :
                   page === "Purchase Orders" ?
                     <PurchaseOrdersPage canManage={canManage} canAdmin={can && can("Admin")} initialFilter={procFilter} /> :
                   page === "Vendor Management" ?

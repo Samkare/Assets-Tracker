@@ -87,8 +87,9 @@ router.delete("/attachments/:aid", requireRole("IT-Manager"), asyncHandler((req,
   res.json({ ok: true });
 }));
 
-// Approve / reject — Admin only.
-router.patch("/:id/status", requireRole("Admin"), asyncHandler((req, res) => {
+// Approve / reject — IT-Manager+ (raise, sign-off, and approval can be the same person).
+// Deleting a PR remains Admin-only (see below) — approval and deletion are separate powers.
+router.patch("/:id/status", requireRole("IT-Manager"), asyncHandler((req, res) => {
   const { status } = purchaseRequestStatusSchema.parse(req.body);
   res.json(svc.setPurchaseRequestStatus(Number(req.params.id), status, actor(req)));
 }));

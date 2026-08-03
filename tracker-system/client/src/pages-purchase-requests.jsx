@@ -49,8 +49,8 @@ function printPR(pr) {
   <style>
     *{box-sizing:border-box} body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;margin:32px;max-width:820px}
     .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px}
-    .company{display:flex;gap:12px;align-items:center} .company img{height:46px}
-    .company h1{font-size:18px;margin:0} .company .sub{color:#64748b;font-size:12px}
+    .company .wordmark{font-size:20px;font-weight:800;letter-spacing:.5px;white-space:nowrap}
+    .company .sub{color:#64748b;font-size:12px;margin-top:2px;max-width:260px}
     .doc{text-align:right} .doc h2{margin:0;font-size:22px;letter-spacing:.5px} .doc .meta{color:#64748b;font-size:12px;margin-top:4px}
     .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 24px;margin:20px 0}
     .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:3px}
@@ -62,8 +62,8 @@ function printPR(pr) {
   </style></head>
   <body onload="window.print()">
     <div class="head">
-      <div class="company"><img src="${location.origin}/logo.png" alt="logo" onerror="this.style.display='none'">
-        <div><h1>Task Source</h1><div class="sub">Task Source HQ, Main Office</div></div></div>
+      <div class="company"><div class="wordmark">TASK SOURCE</div>
+        <div class="sub">Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011</div></div>
       <div class="doc"><h2>PURCHASE REQUEST</h2><div class="meta">${esc(pr.prNumber)}<br>Raised: ${fmtDate(pr.createdAt)}<br>Status: ${esc(pr.status)}</div></div>
     </div>
     <div class="grid">
@@ -203,7 +203,7 @@ function NewRequestForm({ onClose }) {
 /* ---------- detail / review modal ---------- */
 // Approvers open this to VERIFY the full request before deciding. Approve/Reject live here
 // (not in the table) so an Admin can't act without seeing the details first.
-function PRDetailModal({ pr, canAdmin, canManage, activePos = [], onGeneratePO, onClose }) {
+function PRDetailModal({ pr, canAdmin, canManage, canApprove, activePos = [], onGeneratePO, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const setStatus = useSetPRStatus({
@@ -265,7 +265,7 @@ function PRDetailModal({ pr, canAdmin, canManage, activePos = [], onGeneratePO, 
         <PRAttachmentsPanel pr={pr} canManage={canManage} />
 
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", alignItems: "center", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
-          {pr.status === "Pending" && canAdmin ? (
+          {pr.status === "Pending" && canApprove ? (
             <React.Fragment>
               <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
               <button type="button" className="btn btn-primary btn-sm" disabled={busy}
@@ -303,7 +303,7 @@ function PRDetailModal({ pr, canAdmin, canManage, activePos = [], onGeneratePO, 
   );
 }
 
-function PurchaseRequestsPage({ canManage, canAdmin, initialFilter }) {
+function PurchaseRequestsPage({ canManage, canAdmin, canApprove, initialFilter }) {
   const [filter, setFilter] = useState(initialFilter || "All");
   const [formOpen, setFormOpen] = useState(false);
   const [selected, setSelected] = useState(null);       // PR being reviewed in the modal
@@ -379,7 +379,7 @@ function PurchaseRequestsPage({ canManage, canAdmin, initialFilter }) {
                     <td>
                       <button type="button" className="btn btn-secondary btn-sm"
                         onClick={(e) => { e.stopPropagation(); setSelected(pr); }}>
-                        {canAdmin && pr.status === "Pending" ? "Review" : "View"}
+                        {canApprove && pr.status === "Pending" ? "Review" : "View"}
                       </button>
                     </td>
                   </tr>
@@ -396,7 +396,7 @@ function PurchaseRequestsPage({ canManage, canAdmin, initialFilter }) {
           // ["purchase-requests"] query) show up immediately without closing and reopening the modal.
           // Falls back to the originally-clicked row if it's fallen out of the current status filter.
           pr={rows.find((r) => r.id === selected.id) || selected}
-          canAdmin={canAdmin} canManage={canManage}
+          canAdmin={canAdmin} canManage={canManage} canApprove={canApprove}
           activePos={activePosByPr[selected.id] || []}
           onGeneratePO={(pr) => { setSelected(null); setGeneratingFor(pr); }}
           onClose={() => setSelected(null)} />

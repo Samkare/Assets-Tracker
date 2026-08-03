@@ -236,8 +236,8 @@ function printPO(po) {
   <style>
     *{box-sizing:border-box} body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;margin:32px;max-width:820px}
     .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px}
-    .company{display:flex;gap:12px;align-items:center} .company img{height:46px}
-    .company h1{font-size:18px;margin:0} .company .sub{color:#64748b;font-size:12px}
+    .company .wordmark{font-size:20px;font-weight:800;letter-spacing:.5px;white-space:nowrap}
+    .company .sub{color:#64748b;font-size:12px;margin-top:2px;max-width:260px}
     .doc{text-align:right} .doc h2{margin:0;font-size:22px;letter-spacing:.5px} .doc .meta{color:#64748b;font-size:12px;margin-top:4px}
     .grid{display:flex;gap:32px;margin:18px 0} .grid > div{flex:1}
     .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:3px}
@@ -251,8 +251,8 @@ function printPO(po) {
   </style></head>
   <body onload="window.print()">
     <div class="head">
-      <div class="company"><img src="${location.origin}/logo.png" alt="logo" onerror="this.style.display='none'">
-        <div><h1>Task Source</h1><div class="sub">Task Source HQ, Main Office</div></div></div>
+      <div class="company"><div class="wordmark">TASK SOURCE</div>
+        <div class="sub">Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011</div></div>
       <div class="doc"><h2>PURCHASE ORDER</h2><div class="meta">${esc(po.poNumber)}<br>Date: ${fmtDate(po.createdAt)}<br>Status: ${esc(po.status)}</div></div>
     </div>
     <div class="grid">
