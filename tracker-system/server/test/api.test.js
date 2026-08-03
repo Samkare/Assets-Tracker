@@ -384,6 +384,47 @@ test("inventory: receive and assign can be backdated to the actual transaction d
   await req("DELETE", "/api/assets/TS-BACKDATE");
 });
 
+test("import: a file whose columns don't match the Template layout is rejected, not silently misread", async () => {
+  // Regression for the 2026-07-31 incident: re-importing the general "Export" (combined Monitors
+  // column, no WhatsApp/Nextiva) used to be read positionally as if it were the Template layout,
+  // scrambling CPU/RAM/HDD/monitor/contact fields into the wrong columns with no error.
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const { assetsWorkbook } = await import("../src/services/export.service.js");
+  const wb = await assetsWorkbook(); // the human-readable Export layout — must NOT be importable
+  const buf = await wb.xlsx.writeBuffer();
+  const form = new FormData();
+  form.append("file", new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "assets.xlsx");
+  const res = await fetch(base + "/api/import/assets", { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest", Cookie: cookie }, body: form });
+  assert.equal(res.status, 400);
+  const body = await res.json();
+  assert.match(body.error || body.message || JSON.stringify(body), /Template/);
+});
+
+test("import: the Template layout is still accepted (good path unaffected by the header guard)", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const { assetsTemplateWorkbook } = await import("../src/services/export.service.js");
+  const wb = await assetsTemplateWorkbook(); // correct round-trip layout, with its 2 sample rows
+  const buf = await wb.xlsx.writeBuffer();
+  const form = new FormData();
+  form.append("file", new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "template.xlsx");
+  const res = await fetch(base + "/api/import/assets", { method: "POST", headers: { "X-Requested-With": "XMLHttpRequest", Cookie: cookie }, body: form });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.ok(body.token);
+  assert.ok(body.total > 0);
+});
+
+test("departments: renaming to a name already in use returns a clear 409, not a raw 500", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const a = await req("POST", "/api/departments", { name: "Dept Rename A" });
+  const b = await req("POST", "/api/departments", { name: "Dept Rename B" });
+  assert.equal(a.status, 201);
+  assert.equal(b.status, 201);
+  const clash = await req("PUT", `/api/departments/${b.data.id}`, { name: "Dept Rename A" });
+  assert.equal(clash.status, 409);
+  assert.match(clash.data.error || JSON.stringify(clash.data), /already exists/);
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });

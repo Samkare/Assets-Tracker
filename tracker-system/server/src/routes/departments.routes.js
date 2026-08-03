@@ -35,8 +35,17 @@ router.post("/", requireRole("Admin"), asyncHandler((req, res) => {
 
 router.put("/:id", requireRole("Admin"), asyncHandler((req, res) => {
   const { name, hue } = departmentInputSchema.partial().parse(req.body);
-  db.prepare("UPDATE departments SET name = COALESCE(?, name), hue = COALESCE(?, hue) WHERE id = ?")
-    .run(name ?? null, hue ?? null, req.params.id);
+  try {
+    db.prepare("UPDATE departments SET name = COALESCE(?, name), hue = COALESCE(?, hue) WHERE id = ?")
+      .run(name ?? null, hue ?? null, req.params.id);
+  } catch (e) {
+    // department name is UNIQUE — surface a clear 409 instead of a raw 500 (e.g. renaming
+    // one duplicate dept to match another's name, or merging two case-variant duplicates)
+    if (String(e?.code || "").includes("CONSTRAINT") || /UNIQUE/i.test(String(e?.message))) {
+      throw new HttpError(409, `Department "${name}" already exists`);
+    }
+    throw e;
+  }
   audit(req, "dept-edited", name || `#${req.params.id}`, "Department updated");
   res.json({ ok: true });
 }));

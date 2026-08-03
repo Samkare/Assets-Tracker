@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import db from "../db/connection.js";
 import { rowToAsset } from "../db/repo.js";
 import { EXPORT_COLUMNS, ASSET_EXPORT_COLUMNS } from "../lib/columnMap.js";
+import { HttpError } from "../middleware/error.js";
 
 export async function assetsWorkbook() {
   // Live DB export — must match the app's default asset view. Retired (soft-deleted) assets are
@@ -127,10 +128,32 @@ export async function movementsWorkbook() {
 }
 
 // Read an uploaded xlsx buffer into the same { A:.., B:.. } cell shape the pipeline expects.
+// INCIDENT (2026-07-31): the general "Export" download was changed to a human-readable layout
+// (combined Monitors column, no WhatsApp/Nextiva) that no longer matches what the importer reads
+// column-by-position. Re-importing that file silently scrambled ~200 assets — CPU/RAM/HDD/monitor/
+// contact fields landed in the wrong columns with no error, because nothing checked the header row.
+// This guard makes that class of bug impossible: only a file whose header row exactly matches the
+// round-trip Template layout (EXPORT_COLUMNS) is accepted; anything else is rejected up front.
+const EXPECTED_IMPORT_HEADERS = EXPORT_COLUMNS.map((c) => c.header);
+function assertImportHeaders(ws) {
+  const headerRow = ws.getRow(1).values; // 1-indexed; values[0] is unused
+  const got = EXPECTED_IMPORT_HEADERS.map((_, i) => String(headerRow[i + 1] ?? "").trim());
+  const expected = EXPECTED_IMPORT_HEADERS.map((h) => h.trim());
+  if (got.join("|") !== expected.join("|")) {
+    throw new HttpError(400,
+      "This file's columns don't match the import format — nothing was imported. " +
+      "Download the current \"Template\" (Assets → Template) and use that layout, or re-import a " +
+      "previously-downloaded Template file. The general \"Export\" backup uses a different, " +
+      "human-readable layout and can't be re-imported directly."
+    );
+  }
+}
+
 export async function xlsxToRows(buffer) {
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.load(buffer);
   const ws = wb.getWorksheet("FINAL Desktop Details") || wb.worksheets[0];
+  assertImportHeaders(ws);
   const cols = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W"];
   const rows = [];
   ws.eachRow((row, rowNumber) => {
