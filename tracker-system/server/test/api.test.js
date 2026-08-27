@@ -488,6 +488,52 @@ test("purchase requests: deleting a PR cleans up its attachment file", async () 
   assert.equal(gone.status, 404); // DB row (and the route's unlink) both cleaned up
 });
 
+test("purchase requests: can be edited while Pending, but not after a decision", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const pr = await req("POST", "/api/purchase-requests", {
+    department: "Sales", category: "IT Consumable", businessPurpose: "Original purpose",
+    estimatedCost: 5000, suggestedVendors: "Vendor A"
+  });
+  const prId = pr.data.id;
+
+  const edit = await req("PUT", `/api/purchase-requests/${prId}`, {
+    businessPurpose: "Revised purpose — added a second unit", estimatedCost: 8000, suggestedVendors: "Vendor A, Vendor B"
+  });
+  assert.equal(edit.status, 200);
+  assert.equal(edit.data.businessPurpose, "Revised purpose — added a second unit");
+  assert.equal(edit.data.estimatedCost, 8000);
+  assert.equal(edit.data.department, "Sales"); // untouched fields survive a partial edit
+
+  await req("PATCH", `/api/purchase-requests/${prId}/status`, { status: "Approved" });
+  const editAfterApprove = await req("PUT", `/api/purchase-requests/${prId}`, { businessPurpose: "Too late" });
+  assert.equal(editAfterApprove.status, 409); // locked once decided
+});
+
+test("purchase orders: can be edited while Draft, but not after being sent to vendor", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const po = await req("POST", "/api/purchase-orders", {
+    vendor: "Test Vendor Co", department: "Sales", category: "IT Consumable",
+    items: [{ description: "Widget", quantity: 2, rate: 100, taxRate: 18 }]
+  });
+  assert.equal(po.status, 201);
+  const poId = po.data.id;
+
+  const edit = await req("PUT", `/api/purchase-orders/${poId}`, {
+    vendor: "Test Vendor Co", department: "Sales", category: "IT Consumable",
+    items: [{ description: "Widget", quantity: 5, rate: 90, taxRate: 18 }] // qty/rate revised before sending
+  });
+  assert.equal(edit.status, 200);
+  assert.equal(edit.data.items.length, 1);
+  assert.equal(edit.data.items[0].quantity, 5);
+  assert.equal(edit.data.items[0].rate, 90);
+
+  await req("PATCH", `/api/purchase-orders/${poId}/status`, { status: "Sent to Vendor" });
+  const editAfterSend = await req("PUT", `/api/purchase-orders/${poId}`, {
+    vendor: "Test Vendor Co", items: [{ description: "Widget", quantity: 1, rate: 1, taxRate: 18 }]
+  });
+  assert.equal(editAfterSend.status, 409); // locked once sent
+});
+
 test("purchase requests: IT-Manager can approve/reject (not Admin-only), but cannot delete", async () => {
   await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
   const pr = await req("POST", "/api/purchase-requests", {

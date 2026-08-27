@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Icon, ICONS, DeptBadge, Field } from "./components.jsx";
 import {
-  usePurchaseRequests, useCreatePurchaseRequest, useSetPRStatus, useDeletePurchaseRequest, usePurchaseOrders,
+  usePurchaseRequests, useCreatePurchaseRequest, useUpdatePurchaseRequest, useSetPRStatus, useDeletePurchaseRequest, usePurchaseOrders,
   useUploadPRAttachment, useDeletePRAttachment
 } from "./api/hooks.js";
 import { api } from "./api/client.js";
@@ -200,10 +200,105 @@ function NewRequestForm({ onClose }) {
   );
 }
 
+/* ---------- edit form (Pending only, enforced server-side too) ---------- */
+function PREditModal({ pr, onClose }) {
+  const [form, setForm] = useState({
+    department: pr.department || "",
+    category: pr.category || "",
+    businessPurpose: pr.businessPurpose || "",
+    requiredBy: pr.requiredBy || "",
+    estimatedCost: pr.estimatedCost != null ? String(pr.estimatedCost) : "",
+    suggestedVendors: pr.suggestedVendors || ""
+  });
+  const { showToast } = useToast();
+  const update = useUpdatePurchaseRequest({
+    onSuccess: (r) => { showToast(`${r.prNumber} updated`, "success"); onClose(); },
+    onError: (e) => showToast(e.message, "error")
+  });
+  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const valid = form.department && form.category && form.businessPurpose.trim();
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const submit = (e) => {
+    e.preventDefault();
+    if (!valid) return;
+    update.mutate({
+      id: pr.id,
+      input: {
+        department: form.department,
+        category: form.category,
+        businessPurpose: form.businessPurpose.trim(),
+        requiredBy: form.requiredBy || null,
+        estimatedCost: form.estimatedCost !== "" ? Number(form.estimatedCost) : null,
+        suggestedVendors: form.suggestedVendors.trim() || null
+      }
+    });
+  };
+
+  return (
+    <div style={{ position: "fixed", inset: 0, background: "rgba(15,23,42,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}
+      onClick={onClose} role="dialog" aria-modal="true" aria-label={`Edit ${pr.prNumber}`}>
+      <form className="table-card" style={{ maxWidth: 620, width: "100%", padding: "var(--sp-20)", maxHeight: "90vh", overflowY: "auto" }}
+        onClick={(e) => e.stopPropagation()} onSubmit={submit}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "var(--sp-16)" }}>
+          <strong>Edit {pr.prNumber}</strong>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="Cancel"><Icon d={ICONS.close} size={15} /></button>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--sp-12)" }}>
+          <label className="pr-field">
+            <span className="field-label">Department *</span>
+            <select className="input" value={form.department} onChange={set("department")} required>
+              <option value="">Select department…</option>
+              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Category *</span>
+            <select className="input" value={form.category} onChange={set("category")} required>
+              <option value="">Select category…</option>
+              {PR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Required by</span>
+            <input className="input" type="date" value={form.requiredBy} onChange={set("requiredBy")} />
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Estimated cost (₹)</span>
+            <input className="input" type="number" min="0" step="any" placeholder="0"
+              value={form.estimatedCost} onChange={set("estimatedCost")} />
+          </label>
+          <label className="pr-field" style={{ gridColumn: "1 / -1" }}>
+            <span className="field-label">Business purpose *</span>
+            <textarea className="input" rows={2} placeholder="Why is this item/service required?"
+              value={form.businessPurpose} onChange={set("businessPurpose")} required />
+          </label>
+          <label className="pr-field" style={{ gridColumn: "1 / -1" }}>
+            <span className="field-label">Suggested vendors</span>
+            <input className="input" placeholder="e.g. Dell, HP, Lenovo"
+              value={form.suggestedVendors} onChange={set("suggestedVendors")} />
+          </label>
+        </div>
+        <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-16)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Cancel</button>
+          <button type="submit" className="btn btn-primary btn-sm" disabled={!valid || update.isPending}>
+            {update.isPending ? "Saving…" : "Save changes"}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
 /* ---------- detail / review modal ---------- */
 // Approvers open this to VERIFY the full request before deciding. Approve/Reject live here
 // (not in the table) so an Admin can't act without seeing the details first.
-function PRDetailModal({ pr, canAdmin, canManage, canApprove, activePos = [], onGeneratePO, onClose }) {
+function PRDetailModal({ pr, canAdmin, canManage, canApprove, activePos = [], onGeneratePO, onEdit, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const setStatus = useSetPRStatus({
@@ -265,13 +360,22 @@ function PRDetailModal({ pr, canAdmin, canManage, canApprove, activePos = [], on
         <PRAttachmentsPanel pr={pr} canManage={canManage} />
 
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", alignItems: "center", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
-          {pr.status === "Pending" && canApprove ? (
+          {pr.status === "Pending" && (canManage || canApprove) ? (
             <React.Fragment>
-              <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
-              <button type="button" className="btn btn-primary btn-sm" disabled={busy}
-                onClick={() => setStatus.mutate({ id: pr.id, status: "Approved" })}>
-                {setStatus.isPending ? "Saving…" : "Approve"}
-              </button>
+              {canManage ? (
+                <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: "auto" }} disabled={busy} onClick={() => onEdit(pr)}>
+                  <Icon d={ICONS.edit} size={13} /> Edit
+                </button>
+              ) : null}
+              {canApprove ? (
+                <React.Fragment>
+                  <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
+                  <button type="button" className="btn btn-primary btn-sm" disabled={busy}
+                    onClick={() => setStatus.mutate({ id: pr.id, status: "Approved" })}>
+                    {setStatus.isPending ? "Saving…" : "Approve"}
+                  </button>
+                </React.Fragment>
+              ) : null}
             </React.Fragment>
           ) : pr.status === "Approved" ? (
             <React.Fragment>
@@ -307,6 +411,7 @@ function PurchaseRequestsPage({ canManage, canAdmin, canApprove, initialFilter }
   const [filter, setFilter] = useState(initialFilter || "All");
   const [formOpen, setFormOpen] = useState(false);
   const [selected, setSelected] = useState(null);       // PR being reviewed in the modal
+  const [editingPR, setEditingPR] = useState(null);      // PR being edited (Pending only)
   const [generatingFor, setGeneratingFor] = useState(null); // PR we're generating a PO from
   const { data: rows = [], isLoading } = usePurchaseRequests(filter === "All" ? {} : { status: filter });
   // map each PR to ALL its active (non-cancelled) POs — a PR can back more than one PO
@@ -399,8 +504,10 @@ function PurchaseRequestsPage({ canManage, canAdmin, canApprove, initialFilter }
           canAdmin={canAdmin} canManage={canManage} canApprove={canApprove}
           activePos={activePosByPr[selected.id] || []}
           onGeneratePO={(pr) => { setSelected(null); setGeneratingFor(pr); }}
+          onEdit={(pr) => { setSelected(null); setEditingPR(pr); }}
           onClose={() => setSelected(null)} />
       ) : null}
+      {editingPR ? <PREditModal pr={editingPR} onClose={() => setEditingPR(null)} /> : null}
       {generatingFor ? <POGenerateForm pr={generatingFor} onClose={() => setGeneratingFor(null)} /> : null}
     </React.Fragment>
   );
