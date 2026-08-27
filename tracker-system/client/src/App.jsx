@@ -9,7 +9,7 @@ import {
   useSetInStock, useOpenRepair
 } from "./api/hooks.js";
 import { api } from "./api/client.js";
-import { ASSET_TYPES, DEPARTMENTS } from "@its/shared/constants";
+import { ASSET_TYPES, DEPARTMENTS, PROCUREMENT_DELETE_EMAIL } from "@its/shared/constants";
 import { Icon, ICONS, Sidebar, StatCard, FilterDropdown, useIsMobile } from "./components.jsx";
 import {
   DetailDrawer, RemoveAssetModal, AssignModal, AssetTable, AssetCardList, EmployeesGrid, VIEW_COLUMNS, EmptyState
@@ -98,6 +98,8 @@ function PinnableTiles({ stats, summary, totalInventory, assets, onOpenDept, onN
 export default function App() {
   const { user: currentUser, loading: authLoading, login, logout, can } = useAuth();
   const canManage = can && can("IT-Manager");
+  // Deleting a PR/PO is restricted to one named account, not a role — see PROCUREMENT_DELETE_EMAIL.
+  const canDeleteProcurement = !!currentUser && (currentUser.email || "").toLowerCase() === PROCUREMENT_DELETE_EMAIL.toLowerCase();
 
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const isMobile = useIsMobile(860);
@@ -442,9 +444,9 @@ export default function App() {
                   page === "Stock Overview" ?
                     <InventoryPage /> :
                   page === "Purchase Requests" ?
-                    <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} canApprove={canManage} initialFilter={procFilter} /> :
+                    <PurchaseRequestsPage canManage={canManage} canAdmin={can && can("Admin")} canApprove={canManage} canDelete={canDeleteProcurement} initialFilter={procFilter} /> :
                   page === "Purchase Orders" ?
-                    <PurchaseOrdersPage canManage={canManage} canAdmin={can && can("Admin")} initialFilter={procFilter} /> :
+                    <PurchaseOrdersPage canManage={canManage} canAdmin={can && can("Admin")} canDelete={canDeleteProcurement} initialFilter={procFilter} /> :
                   page === "Vendor Management" ?
                     <VendorsPage canManage={canManage} canAdmin={can && can("Admin")} /> :
                     <React.Fragment>

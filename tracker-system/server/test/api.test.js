@@ -482,10 +482,39 @@ test("purchase requests: deleting a PR cleans up its attachment file", async () 
   });
   const aid = (await up.json())[0].id;
   await req("PATCH", `/api/purchase-requests/${prId}/status`, { status: "Rejected" }); // deletable state
+  await req("POST", "/api/auth/login", { email: "santosh@tasksource.net", password: "Welcome!2026" }); // delete is santosh-only
   const del = await req("DELETE", `/api/purchase-requests/${prId}`);
   assert.equal(del.status, 200);
   const gone = await fetch(base + `/api/purchase-requests/attachments/${aid}`, { headers: { Cookie: cookie } });
   assert.equal(gone.status, 404); // DB row (and the route's unlink) both cleaned up
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" }); // restore admin session
+});
+
+test("purchase requests & purchase orders: delete is restricted to santosh@tasksource.net — not even Admin", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const pr = await req("POST", "/api/purchase-requests", {
+    department: "Sales", category: "IT Consumable", businessPurpose: "Delete-restriction test"
+  });
+  await req("PATCH", `/api/purchase-requests/${pr.data.id}/status`, { status: "Rejected" });
+  const po = await req("POST", "/api/purchase-orders", {
+    vendor: "Delete Test Vendor", department: "Sales", category: "IT Consumable",
+    items: [{ description: "Item", quantity: 1, rate: 10, taxRate: 18 }]
+  });
+
+  // the seeded bootstrap admin (a real Admin, just not Santosh) must be refused
+  const prAsAdmin = await req("DELETE", `/api/purchase-requests/${pr.data.id}`);
+  assert.equal(prAsAdmin.status, 403);
+  const poAsAdmin = await req("DELETE", `/api/purchase-orders/${po.data.id}`);
+  assert.equal(poAsAdmin.status, 403);
+
+  // Santosh succeeds on both
+  await req("POST", "/api/auth/login", { email: "santosh@tasksource.net", password: "Welcome!2026" });
+  const prAsSantosh = await req("DELETE", `/api/purchase-requests/${pr.data.id}`);
+  assert.equal(prAsSantosh.status, 200);
+  const poAsSantosh = await req("DELETE", `/api/purchase-orders/${po.data.id}`);
+  assert.equal(poAsSantosh.status, 200);
+
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" }); // restore admin session
 });
 
 test("purchase requests: can be edited while Pending, but not after a decision", async () => {
@@ -550,7 +579,7 @@ test("purchase requests: IT-Manager can approve/reject (not Admin-only), but can
   assert.equal(approve.data.status, "Approved");
 
   const del = await req("DELETE", `/api/purchase-requests/${prId}`);
-  assert.equal(del.status, 403); // deletion stays Admin-only
+  assert.equal(del.status, 403); // deletion is restricted to a specific named account, not any role
 
   await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" }); // restore admin session
 });

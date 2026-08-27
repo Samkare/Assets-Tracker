@@ -63,6 +63,11 @@ export const PR_CATEGORIES = [
 
 export const PR_STATUSES = ["Pending", "Approved", "Rejected"];
 
+// Deleting a PR or PO is restricted to this one named account (not a role — even other Admins
+// cannot). Single source of truth so the server enforcement and the client's button visibility
+// never drift apart. Update here if the responsibility ever moves to a different person.
+export const PROCUREMENT_DELETE_EMAIL = "santosh@tasksource.net";
+
 // Purchase Order module — PO lifecycle statuses + company address defaults.
 export const PO_STATUSES = ["Draft", "Sent to Vendor", "Fulfilled", "Cancelled"];
 // Pre-filled into the PO form.

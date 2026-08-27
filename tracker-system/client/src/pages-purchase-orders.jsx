@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Icon, ICONS, DeptBadge, Field } from "./components.jsx";
 import {
-  usePurchaseOrders, usePurchaseOrder, useGeneratePO, useUpdatePO, useSetPOStatus,
+  usePurchaseOrders, usePurchaseOrder, useGeneratePO, useUpdatePO, useSetPOStatus, useDeletePO,
   useUploadPOAttachment, useDeletePOAttachment, useSuppliers, usePurchaseRequests
 } from "./api/hooks.js";
 import { api } from "./api/client.js";
@@ -278,7 +278,7 @@ function printPO(po) {
 }
 
 /* ---------- detail / review modal ---------- */
-function PODetailModal({ po: summary, canAdmin, canManage, onEdit, onClose }) {
+function PODetailModal({ po: summary, canAdmin, canManage, canDelete, onEdit, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const { data: detail } = usePurchaseOrder(summary.id, true);
@@ -288,7 +288,11 @@ function PODetailModal({ po: summary, canAdmin, canManage, onEdit, onClose }) {
     onSuccess: (r) => { showToast(`${r.poNumber} → ${r.status}`, "success"); onClose(); },
     onError: (e) => showToast(e.message, "error")
   });
-  const busy = setStatus.isPending;
+  const del = useDeletePO({
+    onSuccess: () => { showToast(`${po.poNumber} deleted`, "success"); onClose(); },
+    onError: (e) => showToast(e.message, "error")
+  });
+  const busy = setStatus.isPending || del.isPending;
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === "Escape") onClose(); };
@@ -300,6 +304,10 @@ function PODetailModal({ po: summary, canAdmin, canManage, onEdit, onClose }) {
   const cancel = async () => {
     const ok = await confirm({ title: `Cancel ${po.poNumber}?`, body: `Order to ${po.vendor} will be marked Cancelled.`, confirmLabel: "Cancel PO" });
     if (ok) setStatus.mutate({ id: po.id, status: "Cancelled" });
+  };
+  const remove = async () => {
+    const ok = await confirm({ title: `Delete ${po.poNumber}?`, body: "This permanently removes the draft order.", confirmLabel: "Delete" });
+    if (ok) del.mutate(po.id);
   };
   const download = () => { if (!loaded) return; if (!printPO(po)) showToast("Allow pop-ups to download the PO", "error"); };
 
@@ -382,10 +390,17 @@ function PODetailModal({ po: summary, canAdmin, canManage, onEdit, onClose }) {
         {loaded ? <AttachmentsPanel po={po} canManage={canManage} /> : null}
 
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
-          {canManage && po.status === "Draft" && loaded ? (
-            <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: "auto" }} onClick={() => onEdit(po)}>
-              <Icon d={ICONS.edit} size={13} /> Edit
-            </button>
+          {(canManage || canDelete) && po.status === "Draft" && loaded ? (
+            <div style={{ display: "flex", gap: "var(--sp-8)", marginRight: "auto" }}>
+              {canManage ? (
+                <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={() => onEdit(po)}>
+                  <Icon d={ICONS.edit} size={13} /> Edit
+                </button>
+              ) : null}
+              {canDelete ? (
+                <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
+              ) : null}
+            </div>
           ) : null}
           {statusActions || <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>}
         </div>
@@ -542,7 +557,7 @@ function POForm({ initial, onClose }) {
   );
 }
 
-function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
+function PurchaseOrdersPage({ canManage, canAdmin, canDelete, initialFilter }) {
   const [filter, setFilter] = useState(initialFilter || "All");
   const [selected, setSelected] = useState(null);
   const [creating, setCreating] = useState(false);
@@ -617,7 +632,7 @@ function PurchaseOrdersPage({ canManage, canAdmin, initialFilter }) {
         </div>
       )}
 
-      {selected ? <PODetailModal po={selected} canAdmin={canAdmin} canManage={canManage}
+      {selected ? <PODetailModal po={selected} canAdmin={canAdmin} canManage={canManage} canDelete={canDelete}
         onEdit={(po) => { setSelected(null); setEditing(po); }} onClose={() => setSelected(null)} /> : null}
       {creating ? <POForm onClose={() => setCreating(false)} /> : null}
       {editing ? <POForm initial={editing} onClose={() => setEditing(null)} /> : null}

@@ -298,7 +298,7 @@ function PREditModal({ pr, onClose }) {
 /* ---------- detail / review modal ---------- */
 // Approvers open this to VERIFY the full request before deciding. Approve/Reject live here
 // (not in the table) so an Admin can't act without seeing the details first.
-function PRDetailModal({ pr, canAdmin, canManage, canApprove, activePos = [], onGeneratePO, onEdit, onClose }) {
+function PRDetailModal({ pr, canAdmin, canManage, canApprove, canDelete, activePos = [], onGeneratePO, onEdit, onClose }) {
   const { showToast } = useToast();
   const confirm = useConfirm();
   const setStatus = useSetPRStatus({
@@ -396,7 +396,7 @@ function PRDetailModal({ pr, canAdmin, canManage, canApprove, activePos = [], on
               ) : null}
               <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
             </React.Fragment>
-          ) : canAdmin && pr.status === "Rejected" ? (
+          ) : canDelete && pr.status === "Rejected" ? (
             <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
           ) : (
             <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
@@ -407,7 +407,7 @@ function PRDetailModal({ pr, canAdmin, canManage, canApprove, activePos = [], on
   );
 }
 
-function PurchaseRequestsPage({ canManage, canAdmin, canApprove, initialFilter }) {
+function PurchaseRequestsPage({ canManage, canAdmin, canApprove, canDelete, initialFilter }) {
   const [filter, setFilter] = useState(initialFilter || "All");
   const [formOpen, setFormOpen] = useState(false);
   const [selected, setSelected] = useState(null);       // PR being reviewed in the modal
@@ -501,7 +501,7 @@ function PurchaseRequestsPage({ canManage, canAdmin, canApprove, initialFilter }
           // ["purchase-requests"] query) show up immediately without closing and reopening the modal.
           // Falls back to the originally-clicked row if it's fallen out of the current status filter.
           pr={rows.find((r) => r.id === selected.id) || selected}
-          canAdmin={canAdmin} canManage={canManage} canApprove={canApprove}
+          canAdmin={canAdmin} canManage={canManage} canApprove={canApprove} canDelete={canDelete}
           activePos={activePosByPr[selected.id] || []}
           onGeneratePO={(pr) => { setSelected(null); setGeneratingFor(pr); }}
           onEdit={(pr) => { setSelected(null); setEditingPR(pr); }}

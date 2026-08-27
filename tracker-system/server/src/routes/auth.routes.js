@@ -47,6 +47,7 @@ router.post("/login", asyncHandler(async (req, res) => {
     req.session.userId = u.id;
     req.session.role = u.role;
     req.session.name = u.name;
+    req.session.email = u.email;
     res.json(publicUser(u));
   });
 }));
@@ -79,6 +80,7 @@ router.post("/password", requireAuth, asyncHandler(async (req, res) => {
     req.session.userId = u.id;
     req.session.role = u.role;
     req.session.name = u.name;
+    req.session.email = u.email;
     res.json({ ok: true });
   });
 }));

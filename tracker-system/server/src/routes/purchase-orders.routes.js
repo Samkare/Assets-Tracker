@@ -4,13 +4,14 @@ import path from "node:path";
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { asyncHandler, HttpError } from "../middleware/error.js";
-import { requireAuth, requireRole } from "../middleware/auth.js";
+import { requireAuth, requireRole, requireUserEmail } from "../middleware/auth.js";
 import { config } from "../config.js";
 import {
   purchaseOrderInputSchema,
   purchaseOrderUpdateSchema,
   purchaseOrderStatusSchema
 } from "@its/shared/validation";
+import { PROCUREMENT_DELETE_EMAIL } from "@its/shared/constants";
 import * as svc from "../services/purchase-orders.service.js";
 
 const router = Router();
@@ -96,8 +97,9 @@ router.delete("/attachments/:aid", requireRole("IT-Manager"), asyncHandler((req,
   res.json({ ok: true });
 }));
 
-// Delete a Draft PO — Admin only (also unlinks any attachment files).
-router.delete("/:id", requireRole("Admin"), asyncHandler((req, res) => {
+// Delete a Draft PO — restricted to one named account (not a role — see PROCUREMENT_DELETE_EMAIL).
+// Also unlinks any attachment files.
+router.delete("/:id", requireUserEmail(PROCUREMENT_DELETE_EMAIL), asyncHandler((req, res) => {
   const { storedNames = [] } = svc.deletePurchaseOrder(Number(req.params.id), actor(req));
   for (const name of storedNames) { try { fs.unlinkSync(path.join(UPLOAD_DIR, name)); } catch { /* ignore */ } }
   res.json({ ok: true });
