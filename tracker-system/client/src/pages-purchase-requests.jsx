@@ -360,27 +360,15 @@ function PRDetailModal({ pr, canAdmin, canManage, canApprove, canDelete, activeP
         <PRAttachmentsPanel pr={pr} canManage={canManage} />
 
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", alignItems: "center", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
-          {pr.status === "Pending" && (canManage || canApprove) ? (
-            <React.Fragment>
-              {canManage ? (
-                <button type="button" className="btn btn-secondary btn-sm" style={{ marginRight: "auto" }} disabled={busy} onClick={() => onEdit(pr)}>
+          {(pr.status === "Pending" && canManage) || (pr.status === "Approved" && activePos.length) || canDelete ? (
+            <div style={{ display: "flex", gap: "var(--sp-8)", alignItems: "center", marginRight: "auto" }}>
+              {pr.status === "Pending" && canManage ? (
+                <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={() => onEdit(pr)}>
                   <Icon d={ICONS.edit} size={13} /> Edit
                 </button>
               ) : null}
-              {canApprove ? (
-                <React.Fragment>
-                  <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
-                  <button type="button" className="btn btn-primary btn-sm" disabled={busy}
-                    onClick={() => setStatus.mutate({ id: pr.id, status: "Approved" })}>
-                    {setStatus.isPending ? "Saving…" : "Approve"}
-                  </button>
-                </React.Fragment>
-              ) : null}
-            </React.Fragment>
-          ) : pr.status === "Approved" ? (
-            <React.Fragment>
-              {activePos.length ? (
-                <span className="cell-muted" style={{ marginRight: "auto" }}>
+              {pr.status === "Approved" && activePos.length ? (
+                <span className="cell-muted">
                   {activePos.length === 1 ? "Linked PO: " : `Linked POs (${activePos.length}): `}
                   {activePos.map((po, i) => (
                     <React.Fragment key={po.id}>
@@ -389,18 +377,28 @@ function PRDetailModal({ pr, canAdmin, canManage, canApprove, canDelete, activeP
                   ))}
                 </span>
               ) : null}
-              {canManage ? (
-                <button type="button" className="btn btn-primary btn-sm" onClick={() => onGeneratePO(pr)}>
-                  {activePos.length ? "Generate another PO" : "Generate PO"}
-                </button>
+              {/* Delete is santosh-only (canDelete) and, unlike every other action here, works
+                  regardless of status — a decided/old PR can still be removed by that one account. */}
+              {canDelete ? (
+                <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
               ) : null}
-              <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
+            </div>
+          ) : null}
+          {pr.status === "Pending" && canApprove ? (
+            <React.Fragment>
+              <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={reject}>Reject</button>
+              <button type="button" className="btn btn-primary btn-sm" disabled={busy}
+                onClick={() => setStatus.mutate({ id: pr.id, status: "Approved" })}>
+                {setStatus.isPending ? "Saving…" : "Approve"}
+              </button>
             </React.Fragment>
-          ) : canDelete && pr.status === "Rejected" ? (
-            <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
-          ) : (
-            <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
-          )}
+          ) : null}
+          {pr.status === "Approved" && canManage ? (
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => onGeneratePO(pr)}>
+              {activePos.length ? "Generate another PO" : "Generate PO"}
+            </button>
+          ) : null}
+          <button type="button" className="btn btn-secondary btn-sm" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>

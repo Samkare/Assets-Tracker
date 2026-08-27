@@ -226,19 +226,18 @@ export function setPurchaseOrderStatus(id, status, actor) {
   return getPurchaseOrder(id);
 }
 
-// Delete a Draft PO (Admin-only). Items + attachments cascade; the route unlinks the files.
+// Delete a PO — restricted to one named account, enforced in the route (requireUserEmail), so no
+// status restriction here: that one trusted account can remove a PO in any status, not just Draft.
+// Items + attachments cascade; the route unlinks the files.
 export function deletePurchaseOrder(id, actor) {
   const existing = db.prepare("SELECT * FROM purchase_orders WHERE id = ?").get(id);
   if (!existing) throw new HttpError(404, "Purchase order not found");
-  if (existing.status !== "Draft") {
-    throw new HttpError(409, `Only Draft POs can be deleted (this one is ${existing.status}) — cancel it instead`);
-  }
   const files = db.prepare("SELECT stored_name FROM purchase_order_attachments WHERE po_id = ?").all(id).map((r) => r.stored_name);
   db.prepare("DELETE FROM purchase_orders WHERE id = ?").run(id); // items + attachments cascade
   insertAudit({
     actor, action: "removed", tag: existing.po_number,
     subject: existing.vendor, dept: existing.department,
-    detail: "PO deleted (was Draft)"
+    detail: `PO deleted (was ${existing.status})`
   });
   return { ok: true, storedNames: files };
 }

@@ -83,7 +83,13 @@ app.use(session({
   }
 }));
 
-const loginLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false });
+// Skipped only under the automated test harness (never reachable by a real attacker there) — the
+// integration suite logs in far more often per run than any real user would in 15 minutes, and
+// that number only grows as more tests are added. Fully enforced in dev and production.
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false,
+  skip: () => config.env === "test"
+});
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 600, standardHeaders: true, legacyHeaders: false });
 
 app.get("/api/health", (req, res) => res.json({ ok: true, env: config.env }));

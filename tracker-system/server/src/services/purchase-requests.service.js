@@ -163,10 +163,21 @@ export function setPurchaseRequestStatus(id, status, actor) {
   return getPurchaseRequest(id);
 }
 
+// Delete — restricted to one named account, enforced in the route (requireUserEmail). No status
+// restriction: that one trusted account can remove a PR in any status, not just Rejected.
+// purchase_orders.pr_id has no ON DELETE clause (a generated PO is real procurement history, not
+// something to silently cascade away), so check for linked POs up front and fail with a clear,
+// actionable message rather than a raw FK constraint error.
 // Returns storedNames so the route can unlink the attachment files (DB rows cascade automatically).
 export function deletePurchaseRequest(id, actor) {
   const existing = db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(id);
   if (!existing) throw new HttpError(404, "Purchase request not found");
+  const linkedPOs = db.prepare("SELECT po_number FROM purchase_orders WHERE pr_id = ?").all(id).map((r) => r.po_number);
+  if (linkedPOs.length) {
+    throw new HttpError(409,
+      `Cannot delete — ${linkedPOs.length} purchase order(s) were generated from this request ` +
+      `(${linkedPOs.join(", ")}). Delete those first.`);
+  }
   const storedNames = db.prepare("SELECT stored_name FROM purchase_request_attachments WHERE pr_id = ?")
     .all(id).map((r) => r.stored_name);
   db.prepare("DELETE FROM purchase_requests WHERE id = ?").run(id); // attachments cascade

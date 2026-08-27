@@ -517,6 +517,54 @@ test("purchase requests & purchase orders: delete is restricted to santosh@tasks
   await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" }); // restore admin session
 });
 
+test("santosh can delete an old/decided PR and PO too, not just Rejected/Draft", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const pr = await req("POST", "/api/purchase-requests", {
+    department: "Sales", category: "IT Consumable", businessPurpose: "Old approved PR, no PO generated"
+  });
+  await req("PATCH", `/api/purchase-requests/${pr.data.id}/status`, { status: "Approved" });
+
+  const po = await req("POST", "/api/purchase-orders", {
+    vendor: "Old Sent Vendor", department: "Sales", category: "IT Consumable",
+    items: [{ description: "Item", quantity: 1, rate: 10, taxRate: 18 }]
+  });
+  await req("PATCH", `/api/purchase-orders/${po.data.id}/status`, { status: "Sent to Vendor" });
+
+  await req("POST", "/api/auth/login", { email: "santosh@tasksource.net", password: "Welcome!2026" });
+  const prDel = await req("DELETE", `/api/purchase-requests/${pr.data.id}`);
+  assert.equal(prDel.status, 200); // Approved, not Rejected — still deletable by santosh
+  const poDel = await req("DELETE", `/api/purchase-orders/${po.data.id}`);
+  assert.equal(poDel.status, 200); // Sent to Vendor, not Draft — still deletable by santosh
+
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+});
+
+test("purchase requests: deleting one with a linked PO is refused with a clear message, not a raw DB error", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const pr = await req("POST", "/api/purchase-requests", {
+    department: "Sales", category: "IT Consumable", businessPurpose: "Has a linked PO"
+  });
+  await req("PATCH", `/api/purchase-requests/${pr.data.id}/status`, { status: "Approved" });
+  const po = await req("POST", "/api/purchase-orders", {
+    vendor: "Linked Vendor", department: "Sales", category: "IT Consumable", prId: pr.data.id,
+    items: [{ description: "Item", quantity: 1, rate: 10, taxRate: 18 }]
+  });
+  assert.equal(po.status, 201);
+
+  await req("POST", "/api/auth/login", { email: "santosh@tasksource.net", password: "Welcome!2026" });
+  const blocked = await req("DELETE", `/api/purchase-requests/${pr.data.id}`);
+  assert.equal(blocked.status, 409);
+  assert.match(blocked.data.error, /purchase order/i);
+  assert.match(blocked.data.error, new RegExp(po.data.poNumber));
+
+  // delete the PO first, then the PR succeeds
+  await req("DELETE", `/api/purchase-orders/${po.data.id}`);
+  const now = await req("DELETE", `/api/purchase-requests/${pr.data.id}`);
+  assert.equal(now.status, 200);
+
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+});
+
 test("purchase requests: can be edited while Pending, but not after a decision", async () => {
   await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
   const pr = await req("POST", "/api/purchase-requests", {

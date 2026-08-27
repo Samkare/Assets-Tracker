@@ -390,13 +390,15 @@ function PODetailModal({ po: summary, canAdmin, canManage, canDelete, onEdit, on
         {loaded ? <AttachmentsPanel po={po} canManage={canManage} /> : null}
 
         <div style={{ display: "flex", gap: "var(--sp-8)", justifyContent: "flex-end", marginTop: "var(--sp-20)", borderTop: "1px solid var(--border)", paddingTop: "var(--sp-14)" }}>
-          {(canManage || canDelete) && po.status === "Draft" && loaded ? (
+          {((canManage && po.status === "Draft") || canDelete) && loaded ? (
             <div style={{ display: "flex", gap: "var(--sp-8)", marginRight: "auto" }}>
-              {canManage ? (
+              {canManage && po.status === "Draft" ? (
                 <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={() => onEdit(po)}>
                   <Icon d={ICONS.edit} size={13} /> Edit
                 </button>
               ) : null}
+              {/* Delete is santosh-only (canDelete) and, unlike Edit, works regardless of status —
+                  an old Sent-to-Vendor/Fulfilled PO can still be removed by that one account. */}
               {canDelete ? (
                 <button type="button" className="btn btn-secondary btn-sm" disabled={busy} onClick={remove}>Delete</button>
               ) : null}
