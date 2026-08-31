@@ -58,6 +58,8 @@ export const PR_CATEGORIES = [
   "Service Repair",
   "Software License",
   "Hardware",
+  "Laptop",
+  "Desktop",
   "Other"
 ];
 

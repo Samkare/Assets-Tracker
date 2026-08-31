@@ -647,6 +647,15 @@ test("assets: editing dept with a renamed legacy name (e.g. a stale browser tab)
   await req("DELETE", "/api/assets/TS-LEGACY-DEPT");
 });
 
+test("purchase requests: Laptop and Desktop are valid categories", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  for (const category of ["Laptop", "Desktop"]) {
+    const pr = await req("POST", "/api/purchase-requests", { department: "Sales", category, businessPurpose: `New ${category.toLowerCase()}` });
+    assert.equal(pr.status, 201);
+    assert.equal(pr.data.category, category);
+  }
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });
