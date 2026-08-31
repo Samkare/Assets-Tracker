@@ -2,11 +2,17 @@
 // Confirmed against uploads/parsed-rows.json header row.
 // Used by both the JSON seed and the xlsx import so column handling lives in one place.
 import { DEPARTMENTS } from "@its/shared/constants";
+import { LEGACY_DEPT_ALIASES } from "../db/repo.js";
 
 // canonical-key (UPPER, slashes collapsed) -> canonical department name
 const DEPT_LOOKUP = new Map(
   DEPARTMENTS.map((d) => [d.toUpperCase().replace(/\s*\/\s*/g, "/"), d])
 );
+// Renamed departments: old spreadsheets/seed data still say the old name, so map it forward to
+// the current canonical name instead of spawning a stray duplicate department on next import.
+// Single source of truth (repo.js) — getOrCreateDept() enforces the same aliases for every other
+// caller (direct asset create/edit), so a rename can't be undone by import OR by editing an asset.
+for (const [alias, canonical] of Object.entries(LEGACY_DEPT_ALIASES)) DEPT_LOOKUP.set(alias.toUpperCase(), canonical);
 
 // Normalize messy spreadsheet dept text to a canonical department.
 // Blank, "USING DAY SHIFT", and other pool markers -> "Shared Pool".

@@ -32,7 +32,7 @@ export async function assetsWorkbook() {
 // Blank import template: the exact columns the importer reads + 2 example rows + a hint row.
 export async function assetsTemplateWorkbook() {
   const samples = [
-    { dept: "Sales", pseudo: "Atlas", type: "Desktop", id: "TS-PC-001", cpu: "Intel i5 9th Gen",
+    { dept: "LGD Sales", pseudo: "Atlas", type: "Desktop", id: "TS-PC-001", cpu: "Intel i5 9th Gen",
       ram: "16 GB", hdd: "512 GB", mon1: "5ZHXH9TXA00442L", mon2: "5ZH4H9TX504351A",
       headphone: true, speaker: false, ipPhone: true, whatsapp: "", nextiva: "",
       webcam: false, mobileStand: true, status: "active", fullName: "Atlas Kumar", keyboard: true, mouse: true },

@@ -2,7 +2,18 @@
 import db from "./connection.js";
 import { DEPT_HUE, DEFAULT_HUE, SHARED_PSEUDO } from "@its/shared/constants";
 
-export function getOrCreateDept(name) {
+// Departments that were renamed — every caller that resolves a department name (asset
+// create/edit, import, seed) must go through this so a stale client, an old spreadsheet, or a
+// direct API call using the old text can never spawn a stray duplicate department again.
+// Single source of truth for the rename; import.service's normalizeDept() reuses this too.
+export const LEGACY_DEPT_ALIASES = { "Sales": "LGD Sales", "MIS/IT": "IT" };
+export function resolveDeptName(name) {
+  const s = String(name ?? "").trim();
+  return LEGACY_DEPT_ALIASES[s] ?? s;
+}
+
+export function getOrCreateDept(rawName) {
+  const name = resolveDeptName(rawName);
   const found = db.prepare("SELECT id FROM departments WHERE name = ?").get(name);
   if (found) return found.id;
   const hue = DEPT_HUE[name] ?? DEFAULT_HUE;

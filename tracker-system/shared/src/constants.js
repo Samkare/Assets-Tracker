@@ -2,14 +2,14 @@
 // Values lifted from the prototype data.js so badge hues and dept lists match exactly.
 
 export const DEPARTMENTS = [
-  "Sales", "Payments", "Smart Key", "LGD Purchase", "Accounts", "Watches",
+  "LGD Sales", "Payments", "Smart Key", "LGD Purchase", "Accounts", "Watches",
   "Purchase", "Mindhives", "Sales Outbound", "Surya", "Credit", "Shipping",
-  "Cheques", "MIS/IT", "Buying", "Shared Pool"
+  "Cheques", "IT", "Buying", "Shared Pool"
 ];
 
 // hue per department for badge tints (oklch hue degrees)
 export const DEPT_HUE = {
-  "Sales": 248,
+  "LGD Sales": 248,
   "Payments": 210,
   "Smart Key": 168,
   "LGD Purchase": 28,
@@ -22,7 +22,7 @@ export const DEPT_HUE = {
   "Credit": 92,
   "Shipping": 304,
   "Cheques": 238,
-  "MIS/IT": 180,
+  "IT": 180,
   "Buying": 358,
   "Shared Pool": 248
 };

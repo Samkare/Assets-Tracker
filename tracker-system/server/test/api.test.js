@@ -632,6 +632,21 @@ test("purchase requests: IT-Manager can approve/reject (not Admin-only), but can
   await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" }); // restore admin session
 });
 
+test("assets: editing dept with a renamed legacy name (e.g. a stale browser tab) resolves to the current name, not a stray duplicate", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  await req("POST", "/api/assets", { id: "TS-LEGACY-DEPT", pseudo: "Legacy Dept Tester", dept: "LGD Sales", type: "Desktop" });
+
+  // simulates a stale client still submitting the pre-rename department text directly
+  const edit = await req("PUT", "/api/assets/TS-LEGACY-DEPT", { dept: "Sales" });
+  assert.equal(edit.status, 200);
+  assert.equal(edit.data.dept, "LGD Sales"); // resolved forward, not left as the old name
+
+  const depts = await req("GET", "/api/departments");
+  assert.equal(depts.data.filter((d) => d.name === "Sales").length, 0); // no stray dup spawned
+
+  await req("DELETE", "/api/assets/TS-LEGACY-DEPT");
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });
