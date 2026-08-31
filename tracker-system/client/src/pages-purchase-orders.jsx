@@ -252,7 +252,8 @@ function printPO(po) {
   <body onload="window.print()">
     <div class="head">
       <div class="company"><div class="wordmark">TASK SOURCE</div>
-        <div class="sub">Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011</div></div>
+        <div class="sub">Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011</div>
+        <div class="sub">GSTIN: 23AAICT0953C1ZP</div></div>
       <div class="doc"><h2>PURCHASE ORDER</h2><div class="meta">${esc(po.poNumber)}<br>Date: ${fmtDate(po.createdAt)}<br>Status: ${esc(po.status)}</div></div>
     </div>
     <div class="grid">
