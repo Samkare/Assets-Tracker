@@ -63,6 +63,22 @@ export const PR_CATEGORIES = [
   "Other"
 ];
 
+// Locations a PR/PO can be raised from. Add a new site by adding it here + (if it needs its own
+// numbering prefix) a LOCATION_CODES entry — no migration needed, same pattern as PR_CATEGORIES.
+export const LOCATIONS = ["Head Office", "Bhusawal"];
+export const DEFAULT_LOCATION = "Head Office";
+// location -> PR/PO numbering prefix segment. Sparse on purpose: any location NOT listed here
+// (including "Head Office" and every pre-existing NULL-location row) gets NO prefix segment at
+// all, so the original PR-<Mon>-<YYYY>-NNN / PO-<Mon>-<YYYY>-NNN format is structurally
+// guaranteed to stay unchanged for every location except the ones explicitly added below.
+export const LOCATION_CODES = { "Bhusawal": "BSL" };
+// location -> GSTIN, printed on the PO. Falls back to the Head Office GSTIN for any location
+// without its own registration (and for the default/unset location).
+export const LOCATION_GSTIN = {
+  "Head Office": "23AAICT0953C1ZP",
+  "Bhusawal": "27AAICT0953C1ZH"
+};
+
 export const PR_STATUSES = ["Pending", "Approved", "Rejected"];
 
 // Deleting a PR or PO is restricted to this one named account (not a role — even other Admins

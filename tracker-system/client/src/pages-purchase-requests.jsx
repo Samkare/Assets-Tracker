@@ -9,7 +9,7 @@ import { api } from "./api/client.js";
 import { SkeletonTable } from "./Skeleton.jsx";
 import { useToast } from "./toasts.jsx";
 import { useConfirm } from "./confirm.jsx";
-import { DEPARTMENTS, PR_CATEGORIES } from "@its/shared/constants";
+import { DEPARTMENTS, PR_CATEGORIES, LOCATIONS, DEFAULT_LOCATION } from "@its/shared/constants";
 import { POGenerateForm } from "./pages-purchase-orders.jsx";
 
 const STATUS_TONE = {
@@ -124,7 +124,7 @@ function PRAttachmentsPanel({ pr, canManage }) {
 /* ---------- create form ---------- */
 function NewRequestForm({ onClose }) {
   const [form, setForm] = useState({
-    department: "", category: "", businessPurpose: "",
+    department: "", category: "", location: DEFAULT_LOCATION, businessPurpose: "",
     requiredBy: "", estimatedCost: "", suggestedVendors: ""
   });
   const { showToast } = useToast();
@@ -142,6 +142,7 @@ function NewRequestForm({ onClose }) {
     create.mutate({
       department: form.department,
       category: form.category,
+      location: form.location || null,
       businessPurpose: form.businessPurpose.trim(),
       requiredBy: form.requiredBy || null,
       estimatedCost: form.estimatedCost !== "" ? Number(form.estimatedCost) : null,
@@ -168,6 +169,12 @@ function NewRequestForm({ onClose }) {
           <select className="input" value={form.category} onChange={set("category")} required>
             <option value="">Select category…</option>
             {PR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </label>
+        <label className="pr-field">
+          <span className="field-label">Location</span>
+          <select className="input" value={form.location} onChange={set("location")}>
+            {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
           </select>
         </label>
         <label className="pr-field">
@@ -347,6 +354,7 @@ function PRDetailModal({ pr, canAdmin, canManage, canApprove, canDelete, activeP
           <Field label="Requested by">{pr.requestedBy}</Field>
           <Field label="Department">{pr.department ? <DeptBadge dept={pr.department} /> : "—"}</Field>
           <Field label="Category">{pr.category}</Field>
+          <Field label="Location">{pr.location || DEFAULT_LOCATION}</Field>
           <Field label="Required by">{fmtDate(pr.requiredBy)}</Field>
           <Field label="Estimated cost">{fmtMoney(pr.estimatedCost)}</Field>
           <Field label="Suggested vendors">{pr.suggestedVendors || "—"}</Field>

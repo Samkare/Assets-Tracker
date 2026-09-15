@@ -656,6 +656,72 @@ test("purchase requests: Laptop and Desktop are valid categories", async () => {
   }
 });
 
+test("purchase requests: Bhusawal gets a BSL-prefixed number with its own independent sequence", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const now = new Date();
+  const monthYear = `${MONTHS[now.getUTCMonth()]}-${now.getUTCFullYear()}`;
+
+  // default location (none given) — format must be completely unchanged, no BSL segment
+  const plain = await req("POST", "/api/purchase-requests", { department: "Sales", category: "Hardware", businessPurpose: "Default location PR" });
+  assert.equal(plain.status, 201);
+  assert.match(plain.data.prNumber, new RegExp(`^PR-${monthYear}-\\d{3}$`));
+  assert.equal(plain.data.location, null);
+
+  // Bhusawal — BSL segment inserted, sequence starts independently of the default location's
+  const bsl1 = await req("POST", "/api/purchase-requests", { department: "Sales", category: "Hardware", location: "Bhusawal", businessPurpose: "Bhusawal PR 1" });
+  assert.equal(bsl1.status, 201);
+  assert.match(bsl1.data.prNumber, new RegExp(`^PR-BSL-${monthYear}-\\d{3}$`));
+  assert.equal(bsl1.data.location, "Bhusawal");
+  const bsl1Seq = Number(bsl1.data.prNumber.split("-").pop());
+
+  // interleave a default-location PR — must NOT affect Bhusawal's next sequence number
+  await req("POST", "/api/purchase-requests", { department: "Sales", category: "Hardware", businessPurpose: "Another default PR" });
+
+  const bsl2 = await req("POST", "/api/purchase-requests", { department: "Sales", category: "Hardware", location: "Bhusawal", businessPurpose: "Bhusawal PR 2" });
+  assert.equal(bsl2.status, 201);
+  assert.equal(Number(bsl2.data.prNumber.split("-").pop()), bsl1Seq + 1); // independent, uninterrupted sequence
+
+  // location is immutable — editing a Pending PR must not accept a location change
+  const edit = await req("PUT", `/api/purchase-requests/${bsl1.data.id}`, { location: "Head Office" });
+  assert.equal(edit.status, 200);
+  assert.equal(edit.data.location, "Bhusawal"); // unchanged — location isn't in the editable field set
+});
+
+test("purchase orders: Bhusawal PO gets a BSL-prefixed number, standalone and PR-generated alike", async () => {
+  await req("POST", "/api/auth/login", { email: "admin@test.local", password: "TestAdmin123" });
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const now = new Date();
+  const monthYear = `${MONTHS[now.getUTCMonth()]}-${now.getUTCFullYear()}`;
+
+  // standalone Bhusawal PO
+  const standalone = await req("POST", "/api/purchase-orders", {
+    vendor: "Bhusawal Vendor", department: "Sales", category: "Hardware", location: "Bhusawal",
+    items: [{ description: "Item", quantity: 1, rate: 10, taxRate: 18 }]
+  });
+  assert.equal(standalone.status, 201);
+  assert.match(standalone.data.poNumber, new RegExp(`^PO-BSL-${monthYear}-\\d{3}$`));
+  assert.equal(standalone.data.location, "Bhusawal");
+
+  // default-location standalone PO must stay in the unchanged, unprefixed format
+  const plain = await req("POST", "/api/purchase-orders", {
+    vendor: "HQ Vendor", department: "Sales", category: "Hardware",
+    items: [{ description: "Item", quantity: 1, rate: 10, taxRate: 18 }]
+  });
+  assert.match(plain.data.poNumber, new RegExp(`^PO-${monthYear}-\\d{3}$`));
+
+  // PO generated FROM an Approved Bhusawal PR inherits the location (and BSL prefix) automatically
+  const pr = await req("POST", "/api/purchase-requests", { department: "Sales", category: "Hardware", location: "Bhusawal", businessPurpose: "For PO generation" });
+  await req("PATCH", `/api/purchase-requests/${pr.data.id}/status`, { status: "Approved" });
+  const fromPr = await req("POST", "/api/purchase-orders", {
+    prId: pr.data.id, vendor: "Inherited Vendor",
+    items: [{ description: "Item", quantity: 1, rate: 10, taxRate: 18 }]
+  });
+  assert.equal(fromPr.status, 201);
+  assert.equal(fromPr.data.location, "Bhusawal");
+  assert.match(fromPr.data.poNumber, new RegExp(`^PO-BSL-${monthYear}-\\d{3}$`));
+});
+
 test("RBAC: Viewer cannot create assets", async () => {
   // admin creates a viewer with a compliant password
   const made = await req("POST", "/api/users", { name: "Vic", email: "vic@t.io", role: "Viewer", password: "ViewerPass1" });

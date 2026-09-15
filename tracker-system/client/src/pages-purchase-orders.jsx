@@ -9,7 +9,7 @@ import { api } from "./api/client.js";
 import { SkeletonTable } from "./Skeleton.jsx";
 import { useToast } from "./toasts.jsx";
 import { useConfirm } from "./confirm.jsx";
-import { COMPANY_DEFAULTS, DEPARTMENTS, PR_CATEGORIES } from "@its/shared/constants";
+import { COMPANY_DEFAULTS, DEPARTMENTS, PR_CATEGORIES, LOCATIONS, DEFAULT_LOCATION, LOCATION_GSTIN, LOCATION_CODES } from "@its/shared/constants";
 
 const PO_STATUS_TONE = {
   "Draft": "var(--text-3)",
@@ -147,7 +147,10 @@ export function POGenerateForm({ pr, onClose }) {
           <strong>Generate Purchase Order</strong>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Cancel"><Icon d={ICONS.close} size={15} /></button>
         </div>
-        <p className="page-caption" style={{ marginTop: 2, marginBottom: "var(--sp-14)" }}>From {pr.prNumber} · {pr.department} · {pr.category}</p>
+        <p className="page-caption" style={{ marginTop: 2, marginBottom: "var(--sp-14)" }}>
+          From {pr.prNumber} · {pr.department} · {pr.category} · {pr.location || DEFAULT_LOCATION}
+          {" "}— the PO number will use this location's prefix.
+        </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "var(--sp-12)" }}>
           <label className="pr-field">
@@ -225,6 +228,7 @@ function AttachmentsPanel({ po, canManage }) {
 /* ---------- print-ready PO (opens a clean invoice + triggers print/save-as-PDF) ---------- */
 function printPO(po) {
   const t = po.totals || {};
+  const companyGst = LOCATION_GSTIN[po.location] || LOCATION_GSTIN[DEFAULT_LOCATION];
   const rows = (po.items || []).map((it, i) => `<tr>
     <td>${i + 1}</td><td>${esc(it.description)}</td>
     <td class="r">${it.quantity}</td><td class="r">${fmtMoney(it.rate)}</td>
@@ -253,7 +257,7 @@ function printPO(po) {
     <div class="head">
       <div class="company"><div class="wordmark">TASK SOURCE</div>
         <div class="sub">Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011</div>
-        <div class="sub">GSTIN: 23AAICT0953C1ZP</div></div>
+        <div class="sub">GSTIN: ${esc(companyGst)}${LOCATION_CODES[po.location] ? ` (${esc(po.location)})` : ""}</div></div>
       <div class="doc"><h2>PURCHASE ORDER</h2><div class="meta">${esc(po.poNumber)}<br>Date: ${fmtDate(po.createdAt)}<br>Status: ${esc(po.status)}</div></div>
     </div>
     <div class="grid">
@@ -345,6 +349,7 @@ function PODetailModal({ po: summary, canAdmin, canManage, canDelete, onEdit, on
           <Field label="Vendor GSTIN">{po.vendorGst ? <span className="mono">{po.vendorGst}</span> : "—"}</Field>
           <Field label="Department">{po.department ? <DeptBadge dept={po.department} /> : "—"}</Field>
           <Field label="Category">{po.category || "—"}</Field>
+          <Field label="Location">{po.location || DEFAULT_LOCATION}</Field>
           <Field label="Created">{fmtDateTime(po.createdAt)}</Field>
           <Field label="Tax">{po.interState ? "Inter-state (IGST)" : "Intra-state (CGST+SGST)"}</Field>
           <Field label="Vendor address">{po.vendorAddress || "—"}</Field>
@@ -424,6 +429,7 @@ function POForm({ initial, onClose }) {
   const [vendor, setVendor] = useState(initial?.vendor || "");
   const [department, setDepartment] = useState(initial?.department || "");
   const [category, setCategory] = useState(initial?.category || "");
+  const [location, setLocation] = useState(editing ? (initial.location || "") : DEFAULT_LOCATION);
   const [interState, setInterState] = useState(!!initial?.interState);
   const [billingAddress, setBilling] = useState(editing ? (initial.billingAddress || "") : COMPANY_DEFAULTS.billingAddress);
   const [shippingAddress, setShipping] = useState(editing ? (initial.shippingAddress || "") : COMPANY_DEFAULTS.shippingAddress);
@@ -439,6 +445,9 @@ function POForm({ initial, onClose }) {
   const showGst = matched ? (matched.gstNumber ?? matched.gst_number) : (editing ? initial.vendorGst : null);
   // dept/category come from the PR when one is linked — lock them then
   const deptLocked = editing ? !!initial.prId : !!prId;
+  // location is never editable once created (its po_number prefix was already generated from it) —
+  // locked in edit mode outright, and in create mode once a PR is linked (it'll snapshot from the PR).
+  const locationLocked = editing || !!prId;
 
   const create = useGeneratePO({ onSuccess: (po) => { showToast(`${po.poNumber} created`, "success"); onClose(); }, onError: (e) => showToast(e.message, "error") });
   const update = useUpdatePO({ onSuccess: (po) => { showToast(`${po.poNumber} updated`, "success"); onClose(); }, onError: (e) => showToast(e.message, "error") });
@@ -454,8 +463,10 @@ function POForm({ initial, onClose }) {
     setPrId(id);
     const pr = availablePRs.find((p) => String(p.id) === id);
     if (pr) {
-      setDepartment(pr.department); setCategory(pr.category);
+      setDepartment(pr.department); setCategory(pr.category); setLocation(pr.location || DEFAULT_LOCATION);
       if (!vendor.trim()) { const fv = (pr.suggestedVendors || "").split(",")[0].trim(); if (fv) setVendor(fv); }
+    } else {
+      setLocation(DEFAULT_LOCATION); // "None — standalone PO" picked again: back to editable default
     }
   };
 
@@ -474,8 +485,10 @@ function POForm({ initial, onClose }) {
       billingAddress: billingAddress.trim() || null, shippingAddress: shippingAddress.trim() || null,
       terms: terms.trim() || null, items: cleanItems
     };
+    // location is create-only (immutable after — see locationLocked); the server also overrides
+    // it from the PR when prId is set, so sending the client's guess for a PR-linked PO is harmless.
     if (editing) update.mutate({ id: initial.id, input: payload });
-    else create.mutate({ ...payload, prId: prId ? Number(prId) : null });
+    else create.mutate({ ...payload, prId: prId ? Number(prId) : null, location: location || null });
   };
 
   return (
@@ -525,6 +538,13 @@ function POForm({ initial, onClose }) {
               <option value="">Select…</option>
               {PR_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
+          </label>
+          <label className="pr-field">
+            <span className="field-label">Location</span>
+            <select className="input" value={location || DEFAULT_LOCATION} onChange={(e) => setLocation(e.target.value)} disabled={locationLocked}>
+              {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+            {locationLocked ? <span className="cell-muted" style={{ fontSize: "0.85em" }}>Sets the PO number's prefix — fixed once created{prId ? " (from the linked PR)" : ""}.</span> : null}
           </label>
           <label className="pr-field">
             <span className="field-label">Billing address</span>

@@ -3,6 +3,7 @@
 import db from "../db/connection.js";
 import { insertAudit } from "../db/repo.js";
 import { HttpError } from "../middleware/error.js";
+import { LOCATION_CODES } from "@its/shared/constants";
 
 // DB row (snake_case) -> API/client shape (camelCase). Mirrors rowToAsset in repo.js.
 function rowToPR(r) {
@@ -13,6 +14,7 @@ function rowToPR(r) {
     requestedBy: r.requested_by,
     department: r.department,
     category: r.category,
+    location: r.location ?? null,
     businessPurpose: r.business_purpose,
     requiredBy: r.required_by ?? null,
     estimatedCost: r.estimated_cost ?? null,
@@ -28,10 +30,17 @@ function rowToPR(r) {
 // Year+month come from SQLite (UTC) so they match created_at exactly.
 // Format: PR-<Mon>-<YYYY>-NNN (e.g. PR-Jul-2026-001). The sequence resets each month
 // (the LIKE only matches the current month's rows), so August starts fresh at -001.
+// Locations that map to a code (LOCATION_CODES, e.g. Bhusawal -> BSL) get that code inserted as
+// its own segment: PR-BSL-Jul-2026-001. Any other location (incl. the default/unset) gets no
+// segment at all, so the original format is unchanged there — and because the LIKE below matches
+// the exact prefix string, each location's sequence is independently scoped for free.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function nextPrNumber() {
+function nextPrNumber(location) {
   const { y: year, m } = db.prepare("SELECT strftime('%Y','now') AS y, strftime('%m','now') AS m").get();
-  const prefix = `PR-${MONTHS[Number(m) - 1]}-${year}-`; // e.g. PR-Jul-2026-
+  const code = LOCATION_CODES[location];
+  const prefix = code
+    ? `PR-${code}-${MONTHS[Number(m) - 1]}-${year}-`   // e.g. PR-BSL-Jul-2026-
+    : `PR-${MONTHS[Number(m) - 1]}-${year}-`;           // e.g. PR-Jul-2026- (unchanged)
   const { maxSeq } = db.prepare(
     `SELECT MAX(CAST(substr(pr_number, ?) AS INTEGER)) AS maxSeq
        FROM purchase_requests WHERE pr_number LIKE ?`
@@ -87,18 +96,19 @@ export function getPurchaseRequest(id) {
 // input: already Zod-validated in the route, with requestedBy forced to the session user.
 export function createPurchaseRequest(input, actor) {
   const tx = db.transaction(() => {
-    const prNumber = nextPrNumber();
+    const prNumber = nextPrNumber(input.location);
     const info = db.prepare(
       `INSERT INTO purchase_requests
-         (pr_number, requested_by, department, category, business_purpose,
+         (pr_number, requested_by, department, category, location, business_purpose,
           required_by, estimated_cost, suggested_vendors)
-       VALUES (@prNumber, @requestedBy, @department, @category, @businessPurpose,
+       VALUES (@prNumber, @requestedBy, @department, @category, @location, @businessPurpose,
           @requiredBy, @estimatedCost, @suggestedVendors)`
     ).run({
       prNumber,
       requestedBy: input.requestedBy,
       department: input.department,
       category: input.category,
+      location: input.location ?? null,
       businessPurpose: input.businessPurpose,
       requiredBy: input.requiredBy ?? null,
       estimatedCost: input.estimatedCost ?? null,
@@ -115,7 +125,10 @@ export function createPurchaseRequest(input, actor) {
 }
 
 // Edit is allowed only while the PR is still Pending — a decided PR is an immutable record.
-// requestedBy is owner-fixed (auto-filled at create) and never patched here.
+// requestedBy is owner-fixed (auto-filled at create) and never patched here. location is also
+// never patched — pr_number (and its BSL-style prefix) is generated once from it at create time,
+// so changing location afterward would desync the number from the field; same immutability as
+// pr_number itself.
 // NOTE: COALESCE means a PATCH cannot null-out a field — same convention as repair/consumables.
 export function updatePurchaseRequest(id, patch, actor) {
   const existing = db.prepare("SELECT * FROM purchase_requests WHERE id = ?").get(id);

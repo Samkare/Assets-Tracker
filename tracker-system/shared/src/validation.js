@@ -1,6 +1,6 @@
 // zod schemas — used by API routes (request bodies) and import (per-row validation).
 import { z } from "zod";
-import { ASSET_TYPES, ASSET_STATUSES, ROLES, PR_CATEGORIES, PR_STATUSES, PO_STATUSES } from "./constants.js";
+import { ASSET_TYPES, ASSET_STATUSES, ROLES, PR_CATEGORIES, PR_STATUSES, PO_STATUSES, LOCATIONS } from "./constants.js";
 
 const optStr = z.string().trim().max(120).optional().nullable();
 
@@ -77,6 +77,7 @@ export const purchaseRequestInputSchema = z.object({
   requestedBy:      z.string().trim().min(1, "Requested by is required").max(80),
   department:       z.string().trim().min(1, "Department required").max(60),
   category:         z.enum(PR_CATEGORIES),
+  location:         z.enum(LOCATIONS).nullable().optional(), // drives the PR number prefix (e.g. BSL for Bhusawal)
   businessPurpose:  z.string().trim().min(1, "Business purpose is required").max(2000),
   requiredBy:       z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").nullable().optional(),
   estimatedCost:    z.number().nonnegative("Cost cannot be negative").max(1_000_000_000).nullable().optional(),
@@ -110,6 +111,7 @@ export const purchaseOrderInputSchema = z.object({
   supplierId:      z.number().int().positive().nullable().optional(), // set when chosen from the Suppliers list
   department:      z.string().trim().max(60).nullable().optional(),   // standalone sets these; PR-linked snapshots from the PR
   category:        z.string().trim().max(60).nullable().optional(),
+  location:        z.enum(LOCATIONS).nullable().optional(),           // standalone sets this; PR-linked snapshots from the PR
   billingAddress:  z.string().trim().max(500).nullable().optional(),
   shippingAddress: z.string().trim().max(500).nullable().optional(),
   terms:           z.string().trim().max(2000).nullable().optional(),

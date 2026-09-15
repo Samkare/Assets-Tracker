@@ -4,6 +4,7 @@
 import db from "../db/connection.js";
 import { insertAudit } from "../db/repo.js";
 import { HttpError } from "../middleware/error.js";
+import { LOCATION_CODES } from "@its/shared/constants";
 
 // LEFT JOIN purchase_requests so standalone POs (pr_id NULL) are included; pr_number is null for them.
 // LEFT JOIN suppliers surfaces the vendor's saved address + GSTIN for the detail view / printed PO.
@@ -59,7 +60,7 @@ function rowToPOSummary(r) {
   return {
     id: r.id, poNumber: r.po_number, prId: r.pr_id, prNumber: r.pr_number ?? null,
     vendor: r.vendor, supplierId: r.supplier_id ?? null,
-    department: r.department, category: r.category,
+    department: r.department, category: r.category, location: r.location ?? null,
     finalAmount: r.final_amount ?? null, interState: !!r.inter_state,
     status: r.status, createdBy: r.created_by ?? null, createdAt: r.created_at
   };
@@ -102,6 +103,7 @@ export function firstSuggestedVendor(prId) {
 export function generatePO(input, actor) {
   let department = input.department ?? null;
   let category = input.category ?? null;
+  let location = input.location ?? null;
   let prNumber = null;
 
   if (input.prId != null) {
@@ -112,17 +114,18 @@ export function generatePO(input, actor) {
     }
     department = pr.department;   // snapshot from the PR (authoritative — overrides any client value)
     category = pr.category;
+    location = pr.location;       // same snapshot rule — the PO belongs to the PR's location/numbering
     prNumber = pr.pr_number;
   }
 
   const { totals } = computeTotals(input.items, !!input.interState);
   const tx = db.transaction(() => {
-    const poNumber = nextPoNumber();
+    const poNumber = nextPoNumber(location);
     const info = db.prepare(
       `INSERT INTO purchase_orders
-         (po_number, pr_id, vendor, supplier_id, department, category, final_amount, inter_state,
+         (po_number, pr_id, vendor, supplier_id, department, category, location, final_amount, inter_state,
           billing_address, shipping_address, terms, created_by)
-       VALUES (@poNumber, @prId, @vendor, @supplierId, @department, @category, @finalAmount, @interState,
+       VALUES (@poNumber, @prId, @vendor, @supplierId, @department, @category, @location, @finalAmount, @interState,
           @billingAddress, @shippingAddress, @terms, @actor)`
     ).run({
       poNumber,
@@ -131,6 +134,7 @@ export function generatePO(input, actor) {
       supplierId: input.supplierId ?? null,
       department,
       category,
+      location,
       finalAmount: totals.grandTotal,
       interState: input.interState ? 1 : 0,
       billingAddress: input.billingAddress ?? null,
@@ -164,7 +168,9 @@ export function updatePurchaseOrder(id, patch, actor) {
       `UPDATE purchase_orders SET
          vendor           = COALESCE(@vendor, vendor),
          supplier_id      = COALESCE(@supplierId, supplier_id),
-         -- dept/category are editable only on standalone POs; PR-linked keep their PR snapshot
+         -- dept/category are editable only on standalone POs; PR-linked keep their PR snapshot.
+         -- location is NOT editable here (on either kind) — po_number's prefix is generated once
+         -- from it at create time, so changing it afterward would desync the number from the field.
          department       = CASE WHEN pr_id IS NULL THEN COALESCE(@department, department) ELSE department END,
          category         = CASE WHEN pr_id IS NULL THEN COALESCE(@category, category) ELSE category END,
          billing_address  = COALESCE(@billingAddress, billing_address),
@@ -276,11 +282,16 @@ export function deleteAttachment(attachmentId, actor) {
   return { ok: true, storedName: a.stored_name };
 }
 
-// Atomic PO-<Mon>-<YYYY>-NNN generator (e.g. PO-Jul-2026-001), matching the PR format.
+// Atomic PO-<Mon>-<YYYY>-NNN generator (e.g. PO-Jul-2026-001), matching the PR format — including
+// the same location-code prefixing (PO-BSL-Jul-2026-001) and independent-per-prefix sequencing.
+// See nextPrNumber() in purchase-requests.service.js for the full rationale.
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function nextPoNumber() {
+function nextPoNumber(location) {
   const { y: year, m } = db.prepare("SELECT strftime('%Y','now') AS y, strftime('%m','now') AS m").get();
-  const prefix = `PO-${MONTHS[Number(m) - 1]}-${year}-`;
+  const code = LOCATION_CODES[location];
+  const prefix = code
+    ? `PO-${code}-${MONTHS[Number(m) - 1]}-${year}-`
+    : `PO-${MONTHS[Number(m) - 1]}-${year}-`;
   const { maxSeq } = db.prepare(
     `SELECT MAX(CAST(substr(po_number, ?) AS INTEGER)) AS maxSeq
        FROM purchase_orders WHERE po_number LIKE ?`
