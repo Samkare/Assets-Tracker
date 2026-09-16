@@ -9,7 +9,7 @@ import { api } from "./api/client.js";
 import { SkeletonTable } from "./Skeleton.jsx";
 import { useToast } from "./toasts.jsx";
 import { useConfirm } from "./confirm.jsx";
-import { DEPARTMENTS, PR_CATEGORIES, LOCATIONS, DEFAULT_LOCATION } from "@its/shared/constants";
+import { DEPARTMENTS, PR_CATEGORIES, LOCATIONS, DEFAULT_LOCATION, LOCATION_ADDRESS } from "@its/shared/constants";
 import { POGenerateForm } from "./pages-purchase-orders.jsx";
 
 const STATUS_TONE = {
@@ -45,12 +45,13 @@ const FILTERS = ["All", "Pending", "Approved", "Rejected"];
 /* ---------- print-ready PR (opens a clean form + triggers print/save-as-PDF) ----------
    Workflow this exists for: download → print → get it physically signed → scan → Attach file. */
 function printPR(pr) {
+  const companyAddress = LOCATION_ADDRESS[pr.location] || LOCATION_ADDRESS[DEFAULT_LOCATION];
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>${esc(pr.prNumber)}</title>
   <style>
     *{box-sizing:border-box} body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;margin:32px;max-width:820px}
     .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px}
     .company .wordmark{font-size:20px;font-weight:800;letter-spacing:.5px;white-space:nowrap}
-    .company .sub{color:#64748b;font-size:12px;margin-top:2px;max-width:260px}
+    .company .sub{color:#64748b;font-size:12px;margin-top:2px;max-width:320px}
     .doc{text-align:right} .doc h2{margin:0;font-size:22px;letter-spacing:.5px} .doc .meta{color:#64748b;font-size:12px;margin-top:4px}
     .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px 24px;margin:20px 0}
     .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:3px}
@@ -63,7 +64,7 @@ function printPR(pr) {
   <body onload="window.print()">
     <div class="head">
       <div class="company"><div class="wordmark">TASK SOURCE</div>
-        <div class="sub">Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011</div></div>
+        <div class="sub">${esc(companyAddress)}</div></div>
       <div class="doc"><h2>PURCHASE REQUEST</h2><div class="meta">${esc(pr.prNumber)}<br>Raised: ${fmtDate(pr.createdAt)}<br>Status: ${esc(pr.status)}</div></div>
     </div>
     <div class="grid">

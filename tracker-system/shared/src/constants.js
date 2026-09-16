@@ -78,6 +78,14 @@ export const LOCATION_GSTIN = {
   "Head Office": "23AAICT0953C1ZP",
   "Bhusawal": "27AAICT0953C1ZH"
 };
+// location -> registered address for that office. Single source of truth for every place an
+// address is shown/printed based on the selected location (PR/PO print headers, and the PO
+// form's billing/shipping default). Falls back to Head Office's address for any location
+// without its own listing (and for the default/unset location) — existing addresses unchanged.
+export const LOCATION_ADDRESS = {
+  "Head Office": "Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011",
+  "Bhusawal": "TASKSOURCE PVT LTD, 3rd Floor, Samarth Plaza, Jalgaon Rd, near Jolly Petrol pump, Bhusawal, Maharashtra 425201"
+};
 
 export const PR_STATUSES = ["Pending", "Approved", "Rejected"];
 
@@ -88,9 +96,8 @@ export const PROCUREMENT_DELETE_EMAIL = "santosh@tasksource.net";
 
 // Purchase Order module — PO lifecycle statuses + company address defaults.
 export const PO_STATUSES = ["Draft", "Sent to Vendor", "Fulfilled", "Cancelled"];
-// Pre-filled into the PO form.
-const COMPANY_ADDRESS = "Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011";
+// Pre-filled into the PO form (Head Office's address — the default/unset location).
 export const COMPANY_DEFAULTS = {
-  billingAddress:  COMPANY_ADDRESS,
-  shippingAddress: COMPANY_ADDRESS
+  billingAddress:  LOCATION_ADDRESS[DEFAULT_LOCATION],
+  shippingAddress: LOCATION_ADDRESS[DEFAULT_LOCATION]
 };

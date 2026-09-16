@@ -9,7 +9,7 @@ import { api } from "./api/client.js";
 import { SkeletonTable } from "./Skeleton.jsx";
 import { useToast } from "./toasts.jsx";
 import { useConfirm } from "./confirm.jsx";
-import { COMPANY_DEFAULTS, DEPARTMENTS, PR_CATEGORIES, LOCATIONS, DEFAULT_LOCATION, LOCATION_GSTIN, LOCATION_CODES } from "@its/shared/constants";
+import { COMPANY_DEFAULTS, DEPARTMENTS, PR_CATEGORIES, LOCATIONS, DEFAULT_LOCATION, LOCATION_GSTIN, LOCATION_CODES, LOCATION_ADDRESS } from "@its/shared/constants";
 
 const PO_STATUS_TONE = {
   "Draft": "var(--text-3)",
@@ -109,8 +109,10 @@ export function POGenerateForm({ pr, onClose }) {
   const firstVendor = (pr.suggestedVendors || "").split(",")[0].trim();
   const [vendor, setVendor] = useState(firstVendor);
   const [interState, setInterState] = useState(false);
-  const [billingAddress, setBilling] = useState(COMPANY_DEFAULTS.billingAddress);
-  const [shippingAddress, setShipping] = useState(COMPANY_DEFAULTS.shippingAddress);
+  // default to the PR's own location address (Bhusawal PR -> Bhusawal address), not always HQ's
+  const prAddress = LOCATION_ADDRESS[pr.location] || LOCATION_ADDRESS[DEFAULT_LOCATION];
+  const [billingAddress, setBilling] = useState(prAddress);
+  const [shippingAddress, setShipping] = useState(prAddress);
   const [terms, setTerms] = useState("");
   const [items, setItems] = useState([{ description: "", quantity: 1, rate: pr.estimatedCost != null ? pr.estimatedCost : 0, taxRate: 18 }]);
   const gen = useGeneratePO({
@@ -229,6 +231,7 @@ function AttachmentsPanel({ po, canManage }) {
 function printPO(po) {
   const t = po.totals || {};
   const companyGst = LOCATION_GSTIN[po.location] || LOCATION_GSTIN[DEFAULT_LOCATION];
+  const companyAddress = LOCATION_ADDRESS[po.location] || LOCATION_ADDRESS[DEFAULT_LOCATION];
   const rows = (po.items || []).map((it, i) => `<tr>
     <td>${i + 1}</td><td>${esc(it.description)}</td>
     <td class="r">${it.quantity}</td><td class="r">${fmtMoney(it.rate)}</td>
@@ -241,7 +244,7 @@ function printPO(po) {
     *{box-sizing:border-box} body{font:13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;color:#0f172a;margin:32px;max-width:820px}
     .head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:14px}
     .company .wordmark{font-size:20px;font-weight:800;letter-spacing:.5px;white-space:nowrap}
-    .company .sub{color:#64748b;font-size:12px;margin-top:2px;max-width:260px}
+    .company .sub{color:#64748b;font-size:12px;margin-top:2px;max-width:320px}
     .doc{text-align:right} .doc h2{margin:0;font-size:22px;letter-spacing:.5px} .doc .meta{color:#64748b;font-size:12px;margin-top:4px}
     .grid{display:flex;gap:32px;margin:18px 0} .grid > div{flex:1}
     .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:#64748b;margin-bottom:3px}
@@ -256,7 +259,7 @@ function printPO(po) {
   <body onload="window.print()">
     <div class="head">
       <div class="company"><div class="wordmark">TASK SOURCE</div>
-        <div class="sub">Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011</div>
+        <div class="sub">${esc(companyAddress)}</div>
         <div class="sub">GSTIN: ${esc(companyGst)}${LOCATION_CODES[po.location] ? ` (${esc(po.location)})` : ""}</div></div>
       <div class="doc"><h2>PURCHASE ORDER</h2><div class="meta">${esc(po.poNumber)}<br>Date: ${fmtDate(po.createdAt)}<br>Status: ${esc(po.status)}</div></div>
     </div>
@@ -459,14 +462,25 @@ function POForm({ initial, onClose }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Only auto-switch billing/shipping when they're still sitting on SOME location's default —
+  // once a user types their own address it's left alone, even if they then change the location.
+  const isDefaultAddress = (addr) => Object.values(LOCATION_ADDRESS).includes(addr);
+  const applyLocationAddress = (loc) => {
+    const addr = LOCATION_ADDRESS[loc] || LOCATION_ADDRESS[DEFAULT_LOCATION];
+    setBilling((cur) => (isDefaultAddress(cur) ? addr : cur));
+    setShipping((cur) => (isDefaultAddress(cur) ? addr : cur));
+  };
+  const onLocationChange = (loc) => { setLocation(loc); applyLocationAddress(loc); };
+
   const onPickPR = (id) => {
     setPrId(id);
     const pr = availablePRs.find((p) => String(p.id) === id);
     if (pr) {
-      setDepartment(pr.department); setCategory(pr.category); setLocation(pr.location || DEFAULT_LOCATION);
+      setDepartment(pr.department); setCategory(pr.category);
+      setLocation(pr.location || DEFAULT_LOCATION); applyLocationAddress(pr.location);
       if (!vendor.trim()) { const fv = (pr.suggestedVendors || "").split(",")[0].trim(); if (fv) setVendor(fv); }
     } else {
-      setLocation(DEFAULT_LOCATION); // "None — standalone PO" picked again: back to editable default
+      setLocation(DEFAULT_LOCATION); applyLocationAddress(DEFAULT_LOCATION); // back to standalone default
     }
   };
 
@@ -541,7 +555,7 @@ function POForm({ initial, onClose }) {
           </label>
           <label className="pr-field">
             <span className="field-label">Location</span>
-            <select className="input" value={location || DEFAULT_LOCATION} onChange={(e) => setLocation(e.target.value)} disabled={locationLocked}>
+            <select className="input" value={location || DEFAULT_LOCATION} onChange={(e) => onLocationChange(e.target.value)} disabled={locationLocked}>
               {LOCATIONS.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
             {locationLocked ? <span className="cell-muted" style={{ fontSize: "0.85em" }}>Sets the PO number's prefix — fixed once created{prId ? " (from the linked PR)" : ""}.</span> : null}
