@@ -84,7 +84,7 @@ export const LOCATION_GSTIN = {
 // without its own listing (and for the default/unset location) — existing addresses unchanged.
 export const LOCATION_ADDRESS = {
   "Head Office": "Princes Business Sky park, 701, 702, 703, Indore, Madhya Pradesh 452011",
-  "Bhusawal": "TASKSOURCE PVT LTD, 3rd Floor, Samarth Plaza, Jalgaon Rd, near Jolly Petrol pump, Bhusawal, Maharashtra 425201"
+  "Bhusawal": "3rd Floor, Samarth Plaza, Jalgaon Rd, near Jolly Petrol pump, Bhusawal, Maharashtra 425201"
 };
 
 export const PR_STATUSES = ["Pending", "Approved", "Rejected"];
